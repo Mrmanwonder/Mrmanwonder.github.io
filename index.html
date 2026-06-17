@@ -579,44 +579,47 @@
                 <!-- Deep Dive 3: Analytics -->
                 <div class="flex flex-col lg:flex-row items-center gap-16 reveal" id="performance">
                     <div class="lg:w-1/2 order-2 lg:order-1">
-                        <!-- High Fidelity Graph UI -->
-                        <div class="border border-white/10 bg-[#050505] rounded-2xl p-6 shadow-2xl relative">
-                            <div class="flex justify-between items-end mb-8">
+                        <!-- High Fidelity Graph UI (Inspired by requested image) -->
+                        <div class="border border-white/10 bg-[#0A0A0A] rounded-2xl p-0 shadow-2xl relative overflow-hidden flex flex-col h-full">
+                            <div class="px-6 pt-6 flex justify-between items-end relative z-10">
                                 <div>
                                     <div class="text-xs font-mono text-gray-500 mb-1">XGBOOST FORECAST</div>
                                     <div class="text-4xl font-semibold tracking-tighter text-white">A* <span class="text-lg text-gray-500 font-normal tracking-normal">Predicted</span></div>
                                 </div>
-                                <div class="text-sm font-medium text-axon-cyan bg-axon-cyan/10 px-3 py-1 rounded-full border border-axon-cyan/20">
+                                <div class="text-sm font-medium text-[#B499C8] bg-[#B499C8]/10 px-3 py-1 rounded-full border border-[#B499C8]/20">
                                     +12% Readiness
                                 </div>
                             </div>
-                            
-                            <div class="relative h-[220px] w-full border-b border-l border-white/10">
-                                <!-- Grid lines -->
-                                <div class="absolute inset-0 flex flex-col justify-between pt-4 pb-0 opacity-20 pointer-events-none">
-                                    <div class="w-full border-t border-dashed border-gray-500"></div>
-                                    <div class="w-full border-t border-dashed border-gray-500"></div>
-                                    <div class="w-full border-t border-dashed border-gray-500"></div>
+
+                            <div class="relative flex-1 w-full mt-6 min-h-[240px]">
+                                <!-- Legend (overlaid) -->
+                                <div class="absolute top-0 left-6 flex flex-col gap-2 z-10">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-4 h-4 rounded-full bg-[#B499C8] flex items-center justify-center text-[9px] font-bold text-black">1</div>
+                                        <span class="text-[11px] font-bold text-[#B499C8] tracking-wider uppercase">With AXON</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-4 h-4 rounded-full bg-[#333] flex items-center justify-center text-[9px] font-bold text-gray-400">2</div>
+                                        <span class="text-[11px] font-bold text-gray-500 tracking-wider uppercase">Without AXON</span>
+                                    </div>
                                 </div>
-                                
-                                <!-- Graph Line -->
-                                <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-                                    <!-- Baseline -->
-                                    <path d="M0,80 C20,80 30,90 40,60 C50,30 60,40 70,20 C80,0 90,10 100,5" fill="none" stroke="#333" stroke-width="2" stroke-dasharray="4" />
-                                    <!-- Actual Progress -->
-                                    <path d="M0,80 C20,80 30,90 40,60 C50,30 60,40 70,20 C80,0 90,10 100,5" fill="none" stroke="#0070F3" stroke-width="3" class="path-anim"/>
-                                    <!-- Fill -->
-                                    <path d="M0,80 C20,80 30,90 40,60 C50,30 60,40 70,20 C80,0 90,10 100,5 L100,100 L0,100 Z" fill="url(#graphGrad2)" />
-                                    <defs>
-                                        <linearGradient id="graphGrad2" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stop-color="#0070F3" stop-opacity="0.2" />
-                                            <stop offset="100%" stop-color="#0070F3" stop-opacity="0" />
-                                        </linearGradient>
-                                    </defs>
+
+                                <svg viewBox="0 0 500 250" class="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+                                    <!-- Dashed line (Without AXON) -->
+                                    <path d="M -10,120 C 25,120 30,170 50,170 C 80,170 100,130 140,130 C 190,130 210,170 230,190 C 250,210 260,210 280,210 C 320,210 340,160 380,160 C 420,160 440,210 470,210 C 490,210 495,200 510,200" fill="none" stroke="#444" stroke-width="2.5" stroke-dasharray="8,6" stroke-linecap="round"/>
+                                    
+                                    <!-- Vertical Line -->
+                                    <line x1="240" y1="40" x2="240" y2="250" stroke="#555" stroke-width="1.5" />
+                                    
+                                    <!-- Point on Solid line -->
+                                    <g transform="translate(240, 40)">
+                                        <circle cx="0" cy="0" r="10" fill="#B499C8" opacity="0.2" />
+                                        <circle cx="0" cy="0" r="4" fill="#B499C8" />
+                                    </g>
+
+                                    <!-- Solid line (With AXON) -->
+                                    <path d="M -10,80 C 20,80 20,90 30,90 C 50,90 60,60 80,60 C 110,60 120,140 140,140 C 170,140 200,90 240,40 C 260,20 270,180 290,180 C 310,180 330,130 360,130 C 380,130 390,50 400,50 C 420,50 440,180 480,180 C 490,180 495,170 510,170" fill="none" stroke="#B499C8" stroke-width="2.5" stroke-linecap="round" class="path-anim"/>
                                 </svg>
-                            </div>
-                            <div class="flex justify-between text-[10px] font-mono text-gray-600 mt-3 px-1">
-                                <span>SEP</span><span>OCT</span><span>NOV</span><span>DEC</span>
                             </div>
                         </div>
                     </div>

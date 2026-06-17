@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AXON | The Study System</title>
+    <meta name="description" content="Edge AI Study Intelligence for CAIE and IB.">
+    
+    <!-- Fonts: Vercel's Geist Sans & Mono for ultimate high-fidelity minimalism -->
+    <link href="https://cdn.jsdelivr.net/npm/geist@1.0.3/dist/fonts/geist-sans/style.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/geist@1.0.3/dist/fonts/geist-mono/style.css" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Geist Sans', 'Inter', 'sans-serif'],
+                        mono: ['Geist Mono', 'JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        black: '#000000',
+                        gray: {
+                            900: '#111111',
+                            800: '#222222',
+                            700: '#333333',
+                            500: '#888888',
+                            400: '#A1A1AA',
+                        },
+                        axon: {
+                            blue: '#0070F3', // Vercel-esque blue
+                            purple: '#7928CA',
+                            cyan: '#50E3C2',
+                        }
+                    },
+                    letterSpacing: {
+                        tighter: '-.04em',
+                        tight: '-.02em',
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 1s ease-out forwards',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'marquee': 'marquee 25s linear infinite',
+                        'border-spin': 'border-spin 4s linear infinite',
+                        'scan-line': 'scanLine 3s ease-in-out infinite',
+                        'float-1': 'float1 6s ease-in-out infinite',
+                        'float-2': 'float2 8s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        marquee: {
+                            '0%': { transform: 'translateX(0%)' },
+                            '100%': { transform: 'translateX(-100%)' },
+                        },
+                        'border-spin': {
+                            '100%': { transform: 'rotate(360deg)' },
+                        },
+                        scanLine: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '50%': { transform: 'translateY(300%)' },
+                            '100%': { transform: 'translateY(-100%)' },
+                        },
+                        float1: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-15px)' },
+                        },
+                        float2: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(15px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #000;
+            color: #ededed;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Subtle dot grid */
+        .bg-dot-grid {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+            background-size: 32px 32px;
+            mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, black 40%, transparent 100%);
+            -webkit-mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, black 40%, transparent 100%);
+        }
+
+        /* Ambient Glow behind elements */
+        .glow-bg {
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(0,112,243,0.12) 0%, rgba(121,40,202,0.08) 30%, transparent 70%);
+            top: -300px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Mouse tracking card effect (Vercel spotlight) */
+        .card-spotlight {
+            position: relative;
+            background: #050505;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: border-color 0.3s ease;
+        }
+        .card-spotlight::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(600px circle at var(--mouse-x, 0) var(--mouse-y, 0), rgba(255,255,255,0.06), transparent 40%);
+            z-index: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        .card-spotlight > * { position: relative; z-index: 1; }
+
+        /* Moving gradient border for main CTA */
+        .gradient-border-button {
+            position: relative;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border-radius: 9999px;
+            padding: 1px;
+            background: #000;
+        }
+        .gradient-border-button::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent 70%, #0070F3 80%, #7928CA 100%);
+            animation: border-spin 4s linear infinite;
+        }
+        .gradient-border-button-inner {
+            background: #fff;
+            color: #000;
+            border-radius: 9999px;
+            padding: 0.75rem 1.5rem;
+            position: relative;
+            z-index: 1;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            width: 100%;
+            text-align: center;
+        }
+        .gradient-border-button:hover .gradient-border-button-inner {
+            background: #fafafa;
+            transform: scale(0.98);
+        }
+
+        /* Android Mockup Styling */
+        .android-frame {
+            width: 320px;
+            height: 650px;
+            border-radius: 44px;
+            border: 8px solid #111;
+            background: #000;
+            position: relative;
+            box-shadow: inset 0 0 0 1px #333, 0 30px 60px -12px rgba(0, 112, 243, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+        .android-punch-hole {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 14px;
+            height: 14px;
+            background: #000;
+            border-radius: 50%;
+            border: 1px solid #1a1a1a;
+            z-index: 20;
+        }
+
+        /* Floating UI Cards behind Android */
+        .glass-float {
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+        }
+
+        /* Scroll reveal class */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+    </style>
+</head>
+<body class="relative min-h-screen selection:bg-axon-blue selection:text-white flex flex-col">
+
+    <div class="fixed inset-0 z-[-2] bg-dot-grid pointer-events-none"></div>
+    <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
+        <div class="glow-bg"></div>
+    </div>
+
+    <nav class="fixed top-6 inset-x-0 mx-auto w-max max-w-[90%] z-50">
+        <div class="bg-[#0a0a0a]/80 backdrop-blur-md border border-white/10 rounded-full px-4 py-2 flex items-center gap-8 shadow-2xl">
+            <div class="flex items-center gap-3 text-white font-semibold tracking-tight">
+                <!-- App Logo integration with mix-blend mode to handle black backgrounds -->
+                <img src="Icon.png" alt="AXON Logo" class="h-6 w-auto mix-blend-screen" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <!-- Fallback SVG if image fails -->
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M12 2L2 22h20L12 2z"/></svg>
+                AXON
+            </div>
+            <div class="hidden md:flex items-center gap-6 text-sm text-gray-400 font-medium">
+                <a href="#platform" class="hover:text-white transition-colors">Platform</a>
+                <a href="#features" class="hover:text-white transition-colors">Features</a>
+                <a href="#performance" class="hover:text-white transition-colors">Analytics</a>
+            </div>
+            <a href="#waitlist" class="bg-white text-black px-4 py-1.5 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">
+                Waitlist
+            </a>
+        </div>
+    </nav>
+
+    <main class="flex-grow">
+        <section class="relative pt-48 pb-20 md:pt-56 md:pb-32 px-6 flex flex-col items-center text-center">
+            
+            <h1 class="text-5xl md:text-7xl lg:text-[80px] font-semibold tracking-tighter leading-[1.05] mb-6 max-w-4xl text-white animate-fade-in-up">
+                Study with a system.<br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-gray-500 to-gray-300">Not a stack.</span>
+            </h1>
+
+            <p class="text-lg md:text-xl text-gray-400 max-w-2xl mb-10 tracking-tight animate-fade-in-up" style="animation-delay: 0.1s;">
+                Multi-LLM tutoring, spatial handwriting grading, and adaptive daily planning. The complete infrastructure for CAIE and IB exams.
+            </p>
+
+            <div class="flex flex-col sm:flex-row items-center gap-4 animate-fade-in-up" style="animation-delay: 0.2s;">
+                <a href="#waitlist" class="gradient-border-button group">
+                    <span class="gradient-border-button-inner">Reserve your spot</span>
+                </a>
+                <a href="#platform" class="px-6 py-3 rounded-full border border-white/10 text-white hover:bg-white/5 transition-colors font-medium">
+                    Explore Platform
+                </a>
+            </div>
+
+            <!-- Centered Android Hero Visual -->
+            <div class="mt-24 w-full max-w-5xl relative animate-fade-in-up flex justify-center items-center h-[500px]" style="animation-delay: 0.4s;">
+                
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-20 pointer-events-none"></div>
+
+                <!-- Background Floating Card Left (Readiness) -->
+                <div class="hidden md:block absolute left-10 lg:left-20 top-1/4 glass-float p-6 w-64 animate-float-1 z-0">
+                    <div class="text-xs font-mono text-gray-500 mb-6 text-left">READINESS</div>
+                    <div class="text-3xl font-semibold tracking-tighter text-white mb-6 text-left">84<span class="text-sm text-gray-500">%</span></div>
+                    <div class="relative h-16 w-full border-b border-l border-white/10">
+                        <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+                            <path d="M0,80 C20,80 30,60 40,70 C50,40 60,30 70,20 C80,10 90,15 100,5" fill="none" stroke="#50E3C2" stroke-width="2"/>
+                            <path d="M0,80 C20,80 30,60 40,70 C50,40 60,30 70,20 C80,10 90,15 100,5 L100,100 L0,100 Z" fill="url(#gradMini)" />
+                            <defs>
+                                <linearGradient id="gradMini" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#50E3C2;stop-opacity:0.2" />
+                                    <stop offset="100%" style="stop-color:#50E3C2;stop-opacity:0" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Background Floating Card Right (Plan) -->
+                <div class="hidden md:block absolute right-10 lg:right-20 bottom-1/4 glass-float p-6 w-64 animate-float-2 z-0">
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="text-xs font-mono text-gray-500 text-left">TODAY'S PLAN</div>
+                        <div class="w-6 h-6 rounded-full border border-white/10 flex items-center justify-center">
+                            <div class="w-1.5 h-1.5 rounded-full bg-axon-cyan animate-pulse"></div>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="border border-white/10 bg-white/5 rounded-lg p-3 flex gap-3 items-center">
+                            <div class="w-1 h-8 rounded-full bg-axon-purple"></div>
+                            <div class="flex-1 text-left">
+                                <div class="h-2 w-1/3 bg-white/20 rounded mb-2"></div>
+                                <div class="h-1.5 w-1/2 bg-white/10 rounded"></div>
+                            </div>
+                        </div>
+                        <div class="border border-axon-blue/30 bg-axon-blue/5 rounded-lg p-3 flex gap-3 items-center">
+                            <div class="w-1 h-8 rounded-full bg-axon-blue"></div>
+                            <div class="flex-1 text-left">
+                                <div class="h-2 w-2/3 bg-axon-blue/40 rounded mb-2"></div>
+                                <div class="h-1.5 w-1/3 bg-axon-blue/20 rounded"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Centered Android Device -->
+                <div class="android-frame">
+                    <div class="android-punch-hole"></div>
+                    
+                    <!-- Status Bar -->
+                    <div class="h-10 w-full flex justify-between items-center px-6 text-[10px] text-gray-400 font-mono mt-2 bg-[#050505]">
+                        <span>14:02</span>
+                        <div class="flex gap-1.5 items-center">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+                        </div>
+                    </div>
+
+                    <!-- App UI Content -->
+                    <div class="flex-1 w-full bg-[#050505] flex flex-col p-4 overflow-hidden relative border-t border-white/5 text-left">
+                        
+                        <!-- Header -->
+                        <div class="pb-4 border-b border-white/10 mb-4 flex items-center justify-between">
+                            <div>
+                                <h3 class="font-sans font-semibold text-white">0625 Physics</h3>
+                                <p class="text-xs text-gray-500">Daily Plan • 45m remaining</p>
+                            </div>
+                            <img src="Icon.png" class="w-5 h-5 mix-blend-screen opacity-50" onerror="this.style.display='none'">
+                        </div>
+
+                        <!-- Chat Interface -->
+                        <div class="flex flex-col gap-4 flex-1 mt-2">
+                            <div class="self-end bg-white/10 rounded-2xl rounded-tr-sm px-4 py-2 text-sm max-w-[85%] text-white">
+                                Explain Fleming's Left Hand Rule.
+                            </div>
+                            
+                            <div class="self-start flex flex-col gap-2 max-w-[90%]">
+                                <div class="flex items-center gap-2 text-[10px] font-mono text-axon-blue">
+                                    <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                    ROUTING TO OPENROUTER...
+                                </div>
+                                <div class="bg-[#0070F3]/10 border border-[#0070F3]/20 rounded-2xl rounded-tl-sm px-4 py-3 text-sm text-gray-300">
+                                    It predicts the direction of force on a current-carrying wire in a magnetic field.<br><br>
+                                    • <b>Thumb:</b> Force (Motion)<br>
+                                    • <b>First finger:</b> Magnetic Field<br>
+                                    • <b>Second finger:</b> Current
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Input -->
+                        <div class="h-12 w-full rounded-full bg-white/5 border border-white/10 mt-auto flex items-center px-4">
+                            <span class="text-xs text-gray-500 font-mono">Ask AXON...</span>
+                            <div class="ml-auto w-6 h-6 rounded-full bg-axon-blue flex items-center justify-center">
+                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Navigation Bar -->
+                    <div class="h-1.5 w-24 bg-white/30 rounded-full mx-auto mb-3 absolute bottom-0 left-1/2 -translate-x-1/2"></div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="platform" class="py-32 px-6 max-w-7xl mx-auto border-t border-white/10">
+            <div class="mb-20 max-w-3xl reveal">
+                <h2 class="text-3xl md:text-5xl font-semibold tracking-tight mb-6 text-white">Intelligence, built for execution.</h2>
+                <p class="text-gray-400 text-lg leading-relaxed">We abstracted the complexity of prompt engineering and LLM routing. The result is a unified interface that adapts to your syllabus, tracking everything from your handwriting to your forgetting curves.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Card 1: Multi-LLM -->
+                <div class="card-spotlight col-span-1 lg:col-span-2 p-8 min-h-[380px] flex flex-col reveal group">
+                    <div class="flex-1 mb-8 relative">
+                        <!-- Abstract Chat UI Mock -->
+                        <div class="absolute inset-0 border border-white/5 bg-[#0a0a0a] rounded-lg p-5 font-mono text-xs overflow-hidden flex flex-col">
+                            <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-3">
+                                <span class="text-gray-500">router/query.ts</span>
+                                <div class="flex gap-2">
+                                    <span class="px-2 py-1 rounded bg-white/10 text-white text-[10px]">Groq</span>
+                                    <span class="px-2 py-1 rounded border border-white/10 text-gray-400 text-[10px]">DeepSeek</span>
+                                </div>
+                            </div>
+                            <div class="text-gray-400 mb-3 bg-white/5 p-3 rounded-r-lg rounded-bl-lg max-w-[80%]">Explain Electromagnetic Induction.</div>
+                            <div class="text-axon-cyan mb-2">System [Llama 3]:</div>
+                            <div class="text-white/80 space-y-2">
+                                <div>When a conductor moves through a magnetic field, it cuts magnetic flux lines (<span class="text-axon-purple">$\Phi = BA \cos \theta$</span>).</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold tracking-tight mb-2 text-white">Unbound Tutoring</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Fallback-chain routing automatically connects you to the smartest models for reasoning, speed, or code. Native LaTeX support renders math perfectly.</p>
+                    </div>
+                </div>
+
+                <!-- Card 2: Spatial Grading -->
+                <div class="card-spotlight col-span-1 p-8 min-h-[380px] flex flex-col reveal group" style="transition-delay: 100ms;">
+                    <div class="flex-1 mb-8 relative flex items-center justify-center border border-white/5 bg-[#0a0a0a] rounded-lg overflow-hidden">
+                        <!-- Math Image Simulation -->
+                        <div class="text-white/60 font-serif text-xl italic absolute opacity-40 transform -rotate-6">
+                            v² = u² + 2as<br>
+                            v² = 0 + 2(9.8)(10)
+                        </div>
+                        <!-- Scanner Line -->
+                        <div class="absolute inset-x-0 h-16 bg-gradient-to-b from-transparent via-axon-blue/20 to-transparent top-0 animate-scan-line"></div>
+                        <!-- Grade Box -->
+                        <div class="absolute bottom-4 right-4 bg-black border border-axon-cyan/50 text-axon-cyan text-[10px] font-mono px-2 py-1 rounded shadow-[0_0_15px_rgba(80,227,194,0.2)]">
+                            Working: 1/1
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold tracking-tight mb-2 text-white">Spatial Grading</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Gemini 1.5 evaluates raw handwritten diagrams and equations against actual board mark schemes.</p>
+                    </div>
+                </div>
+
+                <!-- Card 3: Planning -->
+                <div class="card-spotlight col-span-1 p-8 min-h-[380px] flex flex-col reveal group">
+                    <div class="flex-1 mb-8 relative border border-white/5 bg-[#0a0a0a] rounded-lg p-6 flex flex-col justify-end gap-2">
+                        <!-- DAG/Dependency simulation -->
+                        <div class="flex justify-between items-end h-full w-full opacity-70">
+                            <div class="w-1/4 h-[40%] bg-white/10 rounded-t-sm"></div>
+                            <div class="w-1/4 h-[70%] bg-axon-blue/60 rounded-t-sm relative">
+                                <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-axon-blue rounded-full shadow-[0_0_10px_#0070F3]"></div>
+                            </div>
+                            <div class="w-1/4 h-[30%] bg-white/10 rounded-t-sm"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold tracking-tight mb-2 text-white">Autonomous Plans</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Schedules regenerate daily based on forgetting curves, your past accuracy, and approaching exam deadlines.</p>
+                    </div>
+                </div>
+
+                <!-- Card 4: Content Library -->
+                <div class="card-spotlight col-span-1 lg:col-span-2 p-8 min-h-[380px] flex flex-col reveal group" style="transition-delay: 100ms;">
+                    <div class="flex-1 mb-8 flex flex-col justify-center border border-white/5 bg-[#0a0a0a] rounded-lg p-6 overflow-hidden relative">
+                        <!-- Data rows -->
+                        <div class="space-y-4 font-mono text-xs w-full">
+                            <div class="flex justify-between text-white/90 items-center">
+                                <div class="flex items-center gap-3"><span class="text-gray-500">📄</span> CAIE_0625_P42</div>
+                                <span class="px-2 py-1 bg-axon-blue/20 text-axon-blue rounded">Cached</span>
+                            </div>
+                            <div class="flex justify-between text-white/90 items-center">
+                                <div class="flex items-center gap-3"><span class="text-gray-500">📄</span> CAIE_0580_P22</div>
+                                <span class="px-2 py-1 bg-axon-blue/20 text-axon-blue rounded">Cached</span>
+                            </div>
+                            <div class="flex justify-between text-gray-500 items-center">
+                                <div class="flex items-center gap-3"><span>📄</span> IB_DP_PHYS_HL</div>
+                                <span>Pending</span>
+                            </div>
+                        </div>
+                        <div class="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#0a0a0a] to-transparent"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold tracking-tight mb-2 text-white">The Content Pipeline</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">945+ past papers, mark schemes, and examiner reports pre-seeded and instantly searchable. The AARI crawler discovers and validates new resources automatically.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="features" class="py-32 px-6 border-t border-white/10 relative overflow-hidden">
+            <div class="max-w-7xl mx-auto space-y-32">
+                
+                <!-- Deep Dive 1: Study Tools -->
+                <div class="flex flex-col lg:flex-row items-center gap-16 reveal">
+                    <div class="lg:w-1/2 order-2 lg:order-1">
+                        <!-- Abstract Timer/Pings Visual -->
+                        <div class="aspect-square max-h-[400px] border border-white/10 bg-[#050505] rounded-2xl p-8 relative flex items-center justify-center">
+                            <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.05)_1px,transparent_1px)]" style="background-size: 20px 20px;"></div>
+                            
+                            <!-- Timer Circles -->
+                            <div class="w-64 h-64 rounded-full border border-white/10 flex items-center justify-center relative">
+                                <div class="w-48 h-48 rounded-full border border-axon-purple/30 flex items-center justify-center relative shadow-[0_0_30px_rgba(121,40,202,0.1)]">
+                                    <div class="text-3xl font-mono font-bold text-white">45:00</div>
+                                    <!-- Pings -->
+                                    <div class="absolute top-0 right-1/4 w-2 h-2 rounded-full bg-axon-purple shadow-[0_0_10px_#7928CA]"></div>
+                                    <div class="absolute bottom-1/4 left-0 w-2 h-2 rounded-full bg-white/50"></div>
+                                </div>
+                                <svg class="absolute inset-0 w-full h-full -rotate-90">
+                                    <circle cx="128" cy="128" r="127" fill="none" stroke="#7928CA" stroke-width="2" stroke-dasharray="800" stroke-dashoffset="200" class="opacity-50" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lg:w-1/2 order-1 lg:order-2">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-xs font-mono text-gray-400 mb-6">
+                            <span class="w-1.5 h-1.5 rounded-full bg-axon-purple"></span> Core Tools
+                        </div>
+                        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight mb-6 text-white">Engineered for focus.</h2>
+                        <p class="text-gray-400 text-lg mb-8 leading-relaxed">Go beyond simple timers. The AXON study engine enforces minimum durations with a strict lock screen, tracks intensity via random pings, and builds your sessions around Active Recall and the Feynman Technique.</p>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-4">
+                                <div class="mt-1 text-axon-purple font-mono">01</div>
+                                <div>
+                                    <h4 class="text-white font-medium">Smart Intensity Tracking</h4>
+                                    <p class="text-sm text-gray-500 mt-1">Random pings verify your focus during deep work sessions.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-4">
+                                <div class="mt-1 text-axon-purple font-mono">02</div>
+                                <div>
+                                    <h4 class="text-white font-medium">Feynman Validation</h4>
+                                    <p class="text-sm text-gray-500 mt-1">Explain concepts in your own words; AI checks for gaps in understanding.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deep Dive 2: Gamification -->
+                <div class="flex flex-col lg:flex-row items-center gap-16 reveal">
+                    <div class="lg:w-1/2">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-xs font-mono text-gray-400 mb-6">
+                            <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span> Motivation
+                        </div>
+                        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight mb-6 text-white">Momentum engineered.</h2>
+                        <p class="text-gray-400 text-lg mb-8 leading-relaxed">Turn discipline into a tangible asset. Earn XP based on session duration and intensity. Level up from Novice to Grandmaster, protect your streaks with shields, and interact with AI Personas tailored to your learning psychology.</p>
+                    </div>
+                    <div class="lg:w-1/2 w-full">
+                        <!-- Abstract Gamification Visual -->
+                        <div class="border border-white/10 bg-[#050505] rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+                            <div class="flex items-center justify-between mb-8">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-lg bg-orange-500/20 border border-orange-500/50 flex items-center justify-center text-orange-500 font-bold text-xl">
+                                        🔥
+                                    </div>
+                                    <div>
+                                        <div class="text-white font-semibold text-lg">14 Day Streak</div>
+                                        <div class="text-xs font-mono text-gray-500">SHIELD ACTIVE</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-white font-mono font-bold text-xl">Lvl 12</div>
+                                    <div class="text-xs text-gray-500">STUDENT</div>
+                                </div>
+                            </div>
+                            
+                            <!-- XP Bar -->
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-xs font-mono text-gray-400">
+                                    <span>2400 XP</span>
+                                    <span>3000 XP</span>
+                                </div>
+                                <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                    <div class="h-full w-4/5 bg-gradient-to-r from-orange-600 to-yellow-400 rounded-full"></div>
+                                </div>
+                            </div>
+
+                            <!-- Badges -->
+                            <div class="mt-8 flex gap-3">
+                                <div class="w-10 h-10 rounded-full bg-white/5 border border-white/10"></div>
+                                <div class="w-10 h-10 rounded-full bg-white/5 border border-white/10"></div>
+                                <div class="w-10 h-10 rounded-full bg-white/5 border border-white/10"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deep Dive 3: Analytics -->
+                <div class="flex flex-col lg:flex-row items-center gap-16 reveal" id="performance">
+                    <div class="lg:w-1/2 order-2 lg:order-1">
+                        <!-- High Fidelity Graph UI -->
+                        <div class="border border-white/10 bg-[#050505] rounded-2xl p-6 shadow-2xl relative">
+                            <div class="flex justify-between items-end mb-8">
+                                <div>
+                                    <div class="text-xs font-mono text-gray-500 mb-1">XGBOOST FORECAST</div>
+                                    <div class="text-4xl font-semibold tracking-tighter text-white">A* <span class="text-lg text-gray-500 font-normal tracking-normal">Predicted</span></div>
+                                </div>
+                                <div class="text-sm font-medium text-axon-cyan bg-axon-cyan/10 px-3 py-1 rounded-full border border-axon-cyan/20">
+                                    +12% Readiness
+                                </div>
+                            </div>
+                            
+                            <div class="relative h-[220px] w-full border-b border-l border-white/10">
+                                <!-- Grid lines -->
+                                <div class="absolute inset-0 flex flex-col justify-between pt-4 pb-0 opacity-20 pointer-events-none">
+                                    <div class="w-full border-t border-dashed border-gray-500"></div>
+                                    <div class="w-full border-t border-dashed border-gray-500"></div>
+                                    <div class="w-full border-t border-dashed border-gray-500"></div>
+                                </div>
+                                
+                                <!-- Graph Line -->
+                                <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+                                    <!-- Baseline -->
+                                    <path d="M0,80 C20,80 30,90 40,60 C50,30 60,40 70,20 C80,0 90,10 100,5" fill="none" stroke="#333" stroke-width="2" stroke-dasharray="4" />
+                                    <!-- Actual Progress -->
+                                    <path d="M0,80 C20,80 30,90 40,60 C50,30 60,40 70,20 C80,0 90,10 100,5" fill="none" stroke="#0070F3" stroke-width="3" class="path-anim"/>
+                                    <!-- Fill -->
+                                    <path d="M0,80 C20,80 30,90 40,60 C50,30 60,40 70,20 C80,0 90,10 100,5 L100,100 L0,100 Z" fill="url(#graphGrad2)" />
+                                    <defs>
+                                        <linearGradient id="graphGrad2" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#0070F3" stop-opacity="0.2" />
+                                            <stop offset="100%" stop-color="#0070F3" stop-opacity="0" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                            </div>
+                            <div class="flex justify-between text-[10px] font-mono text-gray-600 mt-3 px-1">
+                                <span>SEP</span><span>OCT</span><span>NOV</span><span>DEC</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lg:w-1/2 order-1 lg:order-2">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-xs font-mono text-gray-400 mb-6">
+                            <span class="w-1.5 h-1.5 rounded-full bg-axon-blue"></span> Analytics
+                        </div>
+                        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight mb-6 text-white">Measure what matters.</h2>
+                        <p class="text-gray-400 text-lg mb-8 leading-relaxed">The analytics engine maps your topic mastery over time. We calculate your Readiness Score using advanced decay factors and use XGBoost machine learning to predict your final grade trajectory.</p>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-4">
+                                <div class="mt-1 text-axon-blue font-mono">01</div>
+                                <div>
+                                    <h4 class="text-white font-medium">Weak Topic Heatmaps</h4>
+                                    <p class="text-sm text-gray-500 mt-1">Instantly see which chapters are dragging down your predicted score.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Up-scaled Waitlist Widget -->
+        <section id="waitlist" class="py-32 px-6 border-t border-white/10 bg-[#020202]">
+            <div class="max-w-2xl mx-auto reveal">
+                <div class="text-center mb-12">
+                    <img src="Icon.png" alt="AXON" class="w-12 h-12 mx-auto mb-6 mix-blend-screen" onerror="this.style.display='none'">
+                    <h2 class="text-4xl md:text-5xl font-semibold tracking-tight mb-4 text-white">Secure your sequence.</h2>
+                    <p class="text-gray-400 text-base md:text-lg">Beta access is strictly limited to ensure compute stability across our LLM infrastructure.</p>
+                </div>
+
+                <div class="card-spotlight p-px rounded-2xl shadow-2xl">
+                    <form id="axonForm" class="bg-[#050505] rounded-[15px] p-8 sm:p-10">
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-2 uppercase tracking-wider font-medium">Email Address</label>
+                                <input type="email" required class="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-5 h-14 text-white text-base focus:outline-none focus:border-axon-blue transition-colors font-mono" placeholder="user@domain.com">
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-500 mb-2 uppercase tracking-wider font-medium">Role</label>
+                                    <div class="relative">
+                                        <select required class="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-5 h-14 text-white text-base focus:outline-none focus:border-axon-blue transition-colors appearance-none cursor-pointer">
+                                            <option value="" disabled selected>Select...</option>
+                                            <option>Student</option>
+                                            <option>Parent</option>
+                                            <option>Tutor</option>
+                                        </select>
+                                        <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 text-sm">▼</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-500 mb-2 uppercase tracking-wider font-medium">Board</label>
+                                    <div class="relative">
+                                        <select required class="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-5 h-14 text-white text-base focus:outline-none focus:border-axon-blue transition-colors appearance-none cursor-pointer">
+                                            <option value="" disabled selected>Select...</option>
+                                            <option>CAIE</option>
+                                            <option>Edexcel</option>
+                                            <option>IB</option>
+                                        </select>
+                                        <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 text-sm">▼</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="submit" id="submitBtn" class="w-full mt-8 bg-white text-black font-semibold text-lg py-4 rounded-xl hover:bg-gray-200 transition-colors flex justify-center items-center h-14">
+                                Request Access
+                            </button>
+                        </div>
+
+                        <!-- Success Message -->
+                        <div id="successMsg" class="hidden mt-8 text-center animate-fade-in-up">
+                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full border border-white/10 bg-white/5 text-white mb-6">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+                            </div>
+                            <h4 class="text-white text-xl font-medium mb-3">Registration Complete</h4>
+                            <p class="text-base text-gray-500">You have been securely added to the priority queue.</p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="border-t border-white/10 bg-[#000] py-8 px-6 text-center">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-mono text-gray-600">
+            <div>AXON v1.0.0+1</div>
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                Systems Operational
+            </div>
+            <div>&copy; 2026 AXON Intelligence</div>
+        </div>
+    </footer>
+
+    <style>
+        /* SVG Path Animation for the graph */
+        .path-anim {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: dash 3s ease-out forwards;
+        }
+        .reveal.active .path-anim {
+            animation: dash 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            animation-delay: 0.3s;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: 0; }
+        }
+    </style>
+
+    <script>
+        // Scroll Reveal
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 100;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+        window.addEventListener("scroll", reveal);
+        reveal(); // Trigger initially
+
+        // Spotlight Mouse Tracking Effect for Bento Cards
+        document.querySelectorAll('.card-spotlight').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+        // Form Submit Simulation
+        document.getElementById('axonForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const success = document.getElementById('successMsg');
+            const inputs = this.querySelectorAll('.space-y-6');
+            
+            btn.innerHTML = '<span class="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></span>';
+            
+            setTimeout(() => {
+                inputs.forEach(el => el.style.display = 'none');
+                success.classList.remove('hidden');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

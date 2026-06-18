@@ -6,10 +6,11 @@
     <title>AXON | The Study System</title>
     <meta name="description" content="Edge AI Study Intelligence for CAIE.">
     
-    <!-- Fonts: Inter & JetBrains Mono for clean, high-fidelity minimalism -->
+    <!-- Fonts: General Sans & JetBrains Mono for clean, high-fidelity minimalism -->
+    <link href="https://api.fontshare.com/v2/css?f[]=general-sans@300,400,500,600,700&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -17,7 +18,7 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['General Sans', 'sans-serif'],
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
@@ -83,6 +84,29 @@
             background-size: 32px 32px;
             mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, black 40%, transparent 100%);
             -webkit-mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, black 40%, transparent 100%);
+        }
+
+        /* Success Dot Glow Sweep Animation */
+        .success-dots-sweep {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image: radial-gradient(rgba(80, 227, 194, 0.8) 1.5px, transparent 1.5px);
+            background-size: 32px 32px;
+            -webkit-mask-image: linear-gradient(to top, transparent, black 20%, black 80%, transparent);
+            mask-image: linear-gradient(to top, transparent, black 20%, black 80%, transparent);
+            opacity: 0;
+            transform: translateY(100%);
+            pointer-events: none;
+        }
+        .success-dots-sweep.active {
+            animation: sweepDots 3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        @keyframes sweepDots {
+            0% { transform: translateY(100%); opacity: 0; }
+            10% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(-100%); opacity: 0; }
         }
 
         /* Ambient Glow behind elements */
@@ -221,11 +245,22 @@
         @keyframes dash {
             to { stroke-dashoffset: 0; }
         }
+
+        /* Success Logo Animation */
+        .logo-spin-glow {
+            animation: spinGlow 2.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        @keyframes spinGlow {
+            0% { transform: rotate(0deg) scale(0.5); filter: drop-shadow(0 0 0 rgba(80,227,194,0)); }
+            40% { transform: rotate(360deg) scale(1.15); filter: drop-shadow(0 0 30px rgba(80,227,194,0.7)); }
+            100% { transform: rotate(360deg) scale(1); filter: drop-shadow(0 0 15px rgba(80,227,194,0.4)); }
+        }
     </style>
 </head>
 <body class="relative min-h-screen selection:bg-axon-blue selection:text-white flex flex-col">
 
     <div class="fixed inset-0 z-[-2] bg-dot-grid pointer-events-none"></div>
+    <div class="success-dots-sweep" id="successDots"></div>
     <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
         <div class="glow-bg"></div>
     </div>
@@ -276,7 +311,7 @@
                 <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-20 pointer-events-none"></div>
 
                 <!-- Left Hero Widget: Spatial Grading AI -->
-                <div class="hidden md:flex absolute left-4 lg:left-12 top-1/4 glass-float p-5 w-64 animate-float-1 z-0 flex-col">
+                <div class="hidden md:flex absolute left-4 lg:left-12 top-1/4 glass-float p-5 w-64 animate-float-1 z-0 flex-col text-left">
                     <div class="flex justify-between items-center mb-4">
                         <div class="text-[10px] font-mono text-axon-cyan tracking-widest font-bold">SPATIAL GRADING</div>
                         <div class="w-2 h-2 rounded-full bg-axon-cyan animate-pulse shadow-[0_0_8px_#50E3C2]"></div>
@@ -293,7 +328,7 @@
                 </div>
 
                 <!-- Right Hero Widget: Memory Decay Alert -->
-                <div class="hidden md:flex absolute right-4 lg:right-12 bottom-1/4 glass-float p-5 w-64 animate-float-2 z-0 flex-col">
+                <div class="hidden md:flex absolute right-4 lg:right-12 bottom-1/4 glass-float p-5 w-64 animate-float-2 z-0 flex-col text-left">
                     <div class="text-[10px] font-mono text-red-400 tracking-widest font-bold mb-4">RETENTION ALERT</div>
                     <div class="mb-1">
                         <span class="text-white font-medium text-sm">0625: EM Induction</span>
@@ -330,7 +365,7 @@
                         <!-- Header -->
                         <div class="pb-4 border-b border-white/10 mb-4 flex items-center justify-between">
                             <div>
-                                <h3 class="font-sans font-semibold text-white">0625 Physics</h3>
+                                <h3 class="font-semibold text-white">0625 Physics</h3>
                                 <p class="text-xs text-gray-500">Daily Plan • 45m remaining</p>
                             </div>
                             <img src="Icon.png" class="w-5 h-5 mix-blend-screen opacity-50" onerror="this.style.display='none'">
@@ -489,7 +524,7 @@
                 <!-- Deep Dive 2: Analytics & Realistic Graph -->
                 <div class="flex flex-col lg:flex-row items-center gap-16 reveal" id="performance">
                     <div class="lg:w-1/2 order-2 lg:order-1">
-                        <!-- High Fidelity Graph UI based on image reference -->
+                        <!-- High Fidelity Graph UI showing With/Without AXON diverging properly -->
                         <div class="border border-white/10 bg-[#0A0A0A] rounded-2xl pt-6 pb-2 shadow-2xl relative overflow-hidden flex flex-col">
                             
                             <div class="px-6 flex justify-between items-start relative z-10">
@@ -527,20 +562,20 @@
                                 </div>
 
                                 <svg viewBox="0 0 500 250" class="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-                                    <!-- Dashed line (Without AXON - plateaus at B) -->
-                                    <path d="M 30,200 C 60,180 80,100 130,120 C 180,140 200,160 230,150 C 270,120 290,60 340,90 C 390,120 410,60 460,50 C 480,45 500,50 500,50" fill="none" stroke="#444" stroke-width="2.5" stroke-dasharray="8,6" stroke-linecap="round"/>
+                                    <!-- Dashed line (Without AXON - struggles and plateaus at C) -->
+                                    <path d="M 30,200 C 100,210 150,150 230,160 C 300,170 400,140 500,150" fill="none" stroke="#444" stroke-width="2.5" stroke-dasharray="8,6" stroke-linecap="round"/>
                                     
                                     <!-- Vertical Line Marker -->
                                     <line x1="230" y1="20" x2="230" y2="230" stroke="#555" stroke-width="1.5" />
                                     
-                                    <!-- Point on Solid line -->
-                                    <g transform="translate(230, 150)">
+                                    <!-- Point on Solid line (With AXON) at JAN -->
+                                    <g transform="translate(230, 120)">
                                         <circle cx="0" cy="0" r="14" fill="#B499C8" opacity="0.15" />
                                         <circle cx="0" cy="0" r="6" fill="#B499C8" />
                                     </g>
 
-                                    <!-- Solid line (With AXON - reaches A*) -->
-                                    <path d="M 30,180 C 70,170 90,220 130,180 C 180,140 200,210 230,150 C 270,70 290,100 340,120 C 390,140 410,180 460,100 C 480,70 500,90 500,90" fill="none" stroke="#B499C8" stroke-width="2.5" stroke-linecap="round" class="path-anim"/>
+                                    <!-- Solid line (With AXON - climbs to A*) -->
+                                    <path d="M 30,200 C 100,180 150,190 230,120 C 300,50 400,40 500,30" fill="none" stroke="#B499C8" stroke-width="2.5" stroke-linecap="round" class="path-anim"/>
                                 </svg>
                             </div>
                         </div>
@@ -569,17 +604,18 @@
 
         <!-- Up-scaled Restricted Waitlist Widget -->
         <section id="waitlist" class="py-32 px-6 border-t border-white/10 bg-[#020202]">
-            <div class="max-w-2xl mx-auto reveal">
+            <div class="max-w-2xl mx-auto reveal relative">
                 <div class="text-center mb-12">
                     <img src="Icon.png" alt="AXON" class="w-12 h-12 mx-auto mb-6 mix-blend-screen" onerror="this.style.display='none'">
                     <h2 class="text-4xl md:text-5xl font-semibold tracking-tight mb-4 text-white">Secure your sequence.</h2>
                     <p class="text-gray-400 text-base md:text-lg">Beta access is strictly limited to CAIE students to ensure compute stability across our LLM infrastructure.</p>
                 </div>
 
-                <div class="card-spotlight p-px rounded-2xl shadow-2xl">
-                    <form id="axonForm" class="bg-[#050505] rounded-[15px] p-8 sm:p-10">
+                <div class="card-spotlight p-px rounded-2xl shadow-2xl relative z-10">
+                    <form id="axonForm" class="bg-[#050505] rounded-[15px] p-8 sm:p-10 relative overflow-hidden">
                         
-                        <div class="space-y-6" id="formContent">
+                        <!-- Main Form Content -->
+                        <div class="space-y-6 transition-opacity duration-300" id="formContent">
                             <div>
                                 <label class="block text-xs font-mono text-gray-500 mb-2 uppercase tracking-wider font-medium">Email Address</label>
                                 <input type="email" name="email" required class="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-5 h-14 text-white text-base focus:outline-none focus:border-axon-blue transition-colors font-mono placeholder-gray-600" placeholder="student@domain.com">
@@ -602,13 +638,11 @@
                             </button>
                         </div>
 
-                        <!-- Success Message -->
-                        <div id="successMsg" class="hidden mt-8 text-center animate-fade-in-up flex-col items-center justify-center py-6">
-                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full border border-axon-cyan/30 bg-axon-cyan/10 text-axon-cyan mb-6">
-                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
-                            </div>
-                            <h4 class="text-white text-xl font-medium mb-3">Registration Complete</h4>
-                            <p class="text-base text-gray-500">You have been securely added to the priority queue.</p>
+                        <!-- Spectacular Success State -->
+                        <div id="successMsg" class="hidden absolute inset-0 bg-[#050505] flex-col items-center justify-center p-8 text-center z-20">
+                            <img src="Icon.png" alt="AXON" class="w-20 h-20 mb-6 mix-blend-screen logo-spin-glow" onerror="this.style.display='none'">
+                            <h4 class="text-white text-3xl font-semibold mb-3 tracking-tight animate-fade-in-up" style="animation-delay: 0.5s;">Welcome to Greatness.</h4>
+                            <p class="text-base text-gray-400 animate-fade-in-up" style="animation-delay: 0.7s;">Your sequence is secured. We will contact you soon.</p>
                         </div>
                     </form>
                 </div>
@@ -654,61 +688,46 @@
             });
         });
 
-        // Form Submit to Google Apps Script
-        document.getElementById('axonForm').addEventListener('submit', async function(e) {
+        // Optimistic Fire-and-Forget Form Submission
+        document.getElementById('axonForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            const btnText = document.getElementById('btnText');
-            const success = document.getElementById('successMsg');
+            
             const formContent = document.getElementById('formContent');
+            const success = document.getElementById('successMsg');
+            const globalDots = document.getElementById('successDots');
             
-            // 1. Loading State
-            const originalText = btnText.innerHTML;
-            btnText.innerHTML = '<svg class="w-6 h-6 animate-spin text-black" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
-            btn.disabled = true;
+            // 1. Instantly trigger Success UI & Animations
+            formContent.style.opacity = '0';
+            setTimeout(() => {
+                formContent.style.display = 'none';
+                success.classList.remove('hidden');
+                success.classList.add('flex');
+                
+                // Trigger the global site dot-glow animation
+                globalDots.classList.add('active');
+            }, 300);
             
-            try {
-                // 2. Data Collection
-                const email = this.querySelector('input[name="email"]').value;
-                const role = this.querySelector('input[name="role"]').value;
-                const board = this.querySelector('input[name="board"]').value;
-                
-                // Real Fetch Request to Google Apps Script Web App
-                // TODO: Replace this URL with your deployed Google Apps Script Web App URL
-                const scriptURL = 'https://script.google.com/macros/s/AKfycby_3fq_ftR2VBoF9pvWRIk2T2eI4uicmJjPC8rlS130CmFAbBBJU2hcoINl-42I1XxQ/exec'; 
-                
-                const formData = new FormData();
-                formData.append('email', email);
-                formData.append('role', role);
-                formData.append('board', board);
-                formData.append('timestamp', new Date().toISOString());
+            // 2. Data Collection
+            const email = this.querySelector('input[name="email"]').value;
+            const role = this.querySelector('input[name="role"]').value;
+            const board = this.querySelector('input[name="board"]').value;
+            
+            // 3. Background Fetch to Google Apps Script
+            // REPLACE THIS URL WITH YOUR LIVE WEB APP URL
+            const scriptURL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE'; 
+            
+            const formData = new FormData();
+            formData.append('email', email);
+            formData.append('role', role);
+            formData.append('board', board);
+            formData.append('timestamp', new Date().toISOString());
 
-                // Perform the fetch request
-                fetch(scriptURL, {
-                    method: 'POST',
-                    body: formData,
-                    mode: 'no-cors' // Required to prevent CORS errors with Google Sheets
-                }).then(response => {
-                    // 3. Success State Transition
-                    formContent.style.opacity = '0';
-                    setTimeout(() => {
-                        formContent.style.visibility = 'hidden';
-                        success.classList.remove('hidden');
-                        success.classList.add('flex');
-                    }, 300);
-                }).catch(error => {
-                    console.error('Waitlist submission failed:', error);
-                    btnText.innerHTML = 'Error. Try Again';
-                    btn.disabled = false;
-                    setTimeout(() => { btnText.innerHTML = originalText; }, 3000);
-                });
-
-            } catch (error) {
-                console.error('Submission logic error:', error);
-                btnText.innerHTML = 'Error. Try Again';
-                btn.disabled = false;
-                setTimeout(() => { btnText.innerHTML = originalText; }, 3000);
-            }
+            // Fire and forget - No waiting for the UI
+            fetch(scriptURL, {
+                method: 'POST',
+                body: formData,
+                mode: 'no-cors'
+            }).catch(error => console.error('Background submission error:', error));
         });
     </script>
 </body>

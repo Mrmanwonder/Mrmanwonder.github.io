@@ -3,732 +3,651 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AXON | The Study System</title>
-    <meta name="description" content="Edge AI Study Intelligence for CAIE.">
-    
-    <!-- Fonts: General Sans & JetBrains Mono for clean, high-fidelity minimalism -->
-    <link href="https://api.fontshare.com/v2/css?f[]=general-sans@300,400,500,600,700&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-    
+    <title>Axon | Editorial Space</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['General Sans', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    colors: {
-                        black: '#000000',
-                        gray: {
-                            900: '#111111',
-                            800: '#222222',
-                            700: '#333333',
-                            500: '#888888',
-                            400: '#A1A1AA',
-                        },
-                        axon: {
-                            blue: '#0070F3', 
-                            purple: '#7928CA',
-                            cyan: '#50E3C2',
-                            graphLine: '#B499C8' /* Lavender from image */
-                        }
-                    },
-                    letterSpacing: {
-                        tighter: '-.04em',
-                        tight: '-.02em',
-                    },
-                    animation: {
-                        'fade-in-up': 'fadeInUp 1s ease-out forwards',
-                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'border-spin': 'border-spin 4s linear infinite',
-                        'float-1': 'float1 6s ease-in-out infinite',
-                        'float-2': 'float2 8s ease-in-out infinite',
-                    },
-                    keyframes: {
-                        fadeInUp: {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        'border-spin': {
-                            '100%': { transform: 'rotate(360deg)' },
-                        },
-                        float1: {
-                            '0%, 100%': { transform: 'translateY(0px)' },
-                            '50%': { transform: 'translateY(-15px)' },
-                        },
-                        float2: {
-                            '0%, 100%': { transform: 'translateY(0px)' },
-                            '50%': { transform: 'translateY(15px)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap');
+
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+        
         body {
-            background-color: #000;
-            color: #ededed;
+            font-family: 'Google Sans', sans-serif;
+            background-color: #FFFFFF;
+            color: #000000;
+            overflow-x: hidden;
+            margin: 0;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Subtle dot grid */
-        .bg-dot-grid {
-            background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
-            background-size: 32px 32px;
-            mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, black 40%, transparent 100%);
-            -webkit-mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, black 40%, transparent 100%);
-        }
-
-        /* Success Dot Glow Sweep Animation */
-        .success-dots-sweep {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            background-image: radial-gradient(rgba(80, 227, 194, 0.8) 1.5px, transparent 1.5px);
-            background-size: 32px 32px;
-            -webkit-mask-image: linear-gradient(to top, transparent, black 20%, black 80%, transparent);
-            mask-image: linear-gradient(to top, transparent, black 20%, black 80%, transparent);
-            opacity: 0;
-            transform: translateY(100%);
-            pointer-events: none;
-        }
-        .success-dots-sweep.active {
-            animation: sweepDots 3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-        }
-        @keyframes sweepDots {
-            0% { transform: translateY(100%); opacity: 0; }
-            10% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { transform: translateY(-100%); opacity: 0; }
-        }
-
-        /* Ambient Glow behind elements */
-        .glow-bg {
-            position: absolute;
-            width: 800px;
-            height: 800px;
-            background: radial-gradient(circle, rgba(0,112,243,0.12) 0%, rgba(121,40,202,0.08) 30%, transparent 70%);
-            top: -300px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        /* Mouse tracking card effect */
-        .card-spotlight {
+        .snap-section {
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            height: 100vh;
+            width: 100vw;
             position: relative;
-            background: #050505;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
             overflow: hidden;
-            transition: border-color 0.3s ease;
         }
-        .card-spotlight::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(600px circle at var(--mouse-x, 0) var(--mouse-y, 0), rgba(255,255,255,0.06), transparent 40%);
-            z-index: 0;
-            pointer-events: none;
-            transition: opacity 0.5s;
-        }
-        .card-spotlight > * { position: relative; z-index: 1; }
 
-        /* Moving gradient border for main CTA */
-        .gradient-border-button {
-            position: relative;
-            display: inline-flex;
-            justify-content: center;
+        /* --- 1. The Void & Morphing Dot --- */
+        #void-container { 
+            height: 300vh; 
+            scroll-snap-align: start;
+        }
+        
+        .sticky-wrapper {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
             align-items: center;
+            justify-content: center;
             overflow: hidden;
-            border-radius: 9999px;
-            padding: 1px;
-            background: #000;
-        }
-        .gradient-border-button::before {
-            content: '';
-            position: absolute;
-            width: 200%;
-            height: 200%;
-            background: conic-gradient(from 0deg, transparent 70%, #0070F3 80%, #7928CA 100%);
-            animation: border-spin 4s linear infinite;
-        }
-        .gradient-border-button-inner {
-            background: #fff;
-            color: #000;
-            border-radius: 9999px;
-            padding: 0.75rem 1.5rem;
-            position: relative;
-            z-index: 1;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            width: 100%;
-            text-align: center;
-        }
-        .gradient-border-button:hover .gradient-border-button-inner {
-            background: #fafafa;
-            transform: scale(0.98);
+            background-color: #FFFFFF;
         }
 
-        /* Android Mockup Styling */
-        .android-frame {
-            width: 320px;
-            height: 650px;
-            border-radius: 44px;
-            border: 8px solid #111;
-            background: #000;
+        #morph-dot {
+            width: 12px;
+            height: 12px;
+            background-color: #000000;
+            border-radius: 6px;
+            will-change: transform, width, height, border-radius;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             position: relative;
-            box-shadow: inset 0 0 0 1px #333, 0 30px 60px -12px rgba(0, 112, 243, 0.3);
-            overflow: hidden;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0);
+        }
+
+        #pill-ui {
+            opacity: 0;
+            will-change: opacity;
+            transition: opacity 0.1s ease;
+        }
+
+        .mask-edges-strong {
+            -webkit-mask-image: linear-gradient(to right, transparent, black 25%, black 75%, transparent);
+            mask-image: linear-gradient(to right, transparent, black 25%, black 75%, transparent);
+        }
+
+        /* --- 2. Kinetic Scrubber --- */
+        #drag-container {
+            user-select: none;
+            cursor: grab;
+        }
+        #drag-container:active {
+            cursor: grabbing;
+        }
+        
+        .pyq-ruler {
+            height: 60px;
+            background-image: 
+                repeating-linear-gradient(to right, #3A86FF 0, #3A86FF 3px, transparent 3px, transparent 60px), 
+                repeating-linear-gradient(to right, rgba(58, 134, 255, 0.4) 0, rgba(58, 134, 255, 0.4) 2px, transparent 2px, transparent 15px);
+            background-position: left bottom;
+            background-repeat: repeat-x;
+            background-size: 60px 60px, 15px 30px;
+            will-change: transform;
+        }
+
+        /* --- 3. The Mirror --- */
+        .mirror-half {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            z-index: 10;
+            align-items: center;
+            justify-content: center;
+            transition: flex 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
-        .android-punch-hole {
+        .mirror-half:hover { flex: 1.8; }
+        .mirror-content {
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform: scale(1);
+        }
+        .mirror-half:hover .mirror-content { transform: scale(1.05); }
+
+        .mirror-left { background-color: #FFFFFF; color: #000000; }
+        .mirror-right { background-color: #1C1C1E; color: #FFFFFF; }
+
+        .aura-orb {
             position: absolute;
-            top: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 14px;
-            height: 14px;
-            background: #000;
             border-radius: 50%;
-            border: 1px solid #1a1a1a;
-            z-index: 20;
+            filter: blur(60px);
+            opacity: 0.5;
+            animation: float 12s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(40px, -60px) scale(1.1); }
+            66% { transform: translate(-30px, 30px) scale(0.9); }
+            100% { transform: translate(0, 0) scale(1); }
         }
 
-        /* Floating UI Cards behind Android */
-        .glass-float {
-            background: rgba(10, 10, 10, 0.8);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
-        }
-
-        /* Scroll reveal class */
-        .reveal {
+        .grid-bg {
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
             opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1);
+            transition: opacity 0.5s;
         }
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
+        .mirror-right:hover .grid-bg { opacity: 1; }
+
+        /* --- 4. Ask Axon AI --- */
+        .chat-container {
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
-        
-        /* Graph SVG Path Animation */
-        .path-anim {
-            stroke-dasharray: 1000;
-            stroke-dashoffset: 1000;
-            animation: dash 3s ease-out forwards;
+        .eq-bar {
+            width: 4px;
+            background-color: #3A86FF;
+            border-radius: 2px;
+            animation: eq-bounce 1s ease-in-out infinite alternate;
+            transform-origin: bottom;
         }
-        .reveal.active .path-anim {
-            animation: dash 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-            animation-delay: 0.3s;
-        }
-        @keyframes dash {
-            to { stroke-dashoffset: 0; }
+        @keyframes eq-bounce {
+            0% { transform: scaleY(0.3); opacity: 0.6; }
+            100% { transform: scaleY(1); opacity: 1; }
         }
 
-        /* Success Logo Animation */
-        .logo-spin-glow {
-            animation: spinGlow 2.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        /* --- 5. Registration Animations (The Kinetic Pill) --- */
+        #success-pill {
+            width: 0px;
+            height: 2px;
+            opacity: 0;
+            border-radius: 0;
         }
-        @keyframes spinGlow {
-            0% { transform: rotate(0deg) scale(0.5); filter: drop-shadow(0 0 0 rgba(80,227,194,0)); }
-            40% { transform: rotate(360deg) scale(1.15); filter: drop-shadow(0 0 30px rgba(80,227,194,0.7)); }
-            100% { transform: rotate(360deg) scale(1); filter: drop-shadow(0 0 15px rgba(80,227,194,0.4)); }
+        
+        .morph-to-pill {
+            animation: morph-sequence 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        
+        @keyframes morph-sequence {
+            0% { width: 0px; height: 2px; opacity: 0; border-radius: 0px; }
+            15% { width: 12px; height: 12px; opacity: 1; border-radius: 6px; }
+            35% { width: 12px; height: 12px; opacity: 1; border-radius: 6px; }
+            100% { width: 100%; max-width: 420px; height: 56px; opacity: 1; border-radius: 28px; }
+        }
+
+        .fade-in-data {
+            animation: text-reveal 0.4s ease forwards;
+            animation-delay: 0.6s; /* Waits for pill to expand */
+        }
+        @keyframes text-reveal {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* --- 6. Footer Legal Sheet (Upward Slide) --- */
+        #footer-container {
+            transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .legal-content-fade {
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            transition-delay: 0.2s;
+        }
+        .legal-active .legal-content-fade {
+            opacity: 1;
         }
     </style>
 </head>
-<body class="relative min-h-screen selection:bg-axon-blue selection:text-white flex flex-col">
+<body>
 
-    <div class="fixed inset-0 z-[-2] bg-dot-grid pointer-events-none"></div>
-    <div class="success-dots-sweep" id="successDots"></div>
-    <div class="fixed inset-0 z-[-1] pointer-events-none overflow-hidden">
-        <div class="glow-bg"></div>
+    <!-- Section 1: The Void & Live Activity Scroll -->
+    <div id="void-container">
+        <div class="sticky-wrapper">
+            <div id="morph-dot">
+                <div id="pill-ui" class="absolute w-[380px] h-[130px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col justify-between pointer-events-none p-4">
+                    <div class="relative w-full h-[50px] overflow-hidden flex flex-col items-center" style="-webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);">
+                        <div id="pill-track" class="absolute bottom-2 h-[30px] will-change-transform" style="width: 465px; transform: translateX(0px);">
+                            <div class="absolute bottom-0 w-full h-[14px] opacity-80" style="background: repeating-linear-gradient(to right, #FF9F0A 0, #FF9F0A 2px, transparent 2px, transparent 15.5px);"></div>
+                            <div class="absolute top-0 w-full h-[15px] text-[11px] font-bold text-[#FF9F0A] opacity-90 tabular-nums">
+                                <span class="absolute" style="left: 0px; transform: translateX(-50%);">0</span>
+                                <span class="absolute" style="left: 77.5px; transform: translateX(-50%);">5</span>
+                                <span class="absolute" style="left: 155px; transform: translateX(-50%);">10</span>
+                                <span class="absolute" style="left: 232.5px; transform: translateX(-50%);">15</span>
+                                <span class="absolute" style="left: 310px; transform: translateX(-50%);">20</span>
+                                <span class="absolute" style="left: 387.5px; transform: translateX(-50%);">25</span>
+                                <span class="absolute" style="left: 465px; transform: translateX(-50%);">30</span>
+                            </div>
+                        </div>
+                        <div class="absolute bottom-0 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[8px] border-l-transparent border-r-transparent border-b-[#FF9F0A] z-10"></div>
+                    </div>
+                    <div class="flex justify-between items-center w-full px-2 mb-1">
+                        <div class="bg-[#FF9F0A]/20 text-[#FF9F0A] px-4 py-2 rounded-full font-bold text-sm tracking-wide">Studying Physics</div>
+                        <div id="pill-timer" class="text-[44px] leading-none font-bold tabular-nums text-[#FF9F0A] tracking-tighter">15:00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <nav class="fixed top-6 inset-x-0 mx-auto w-max max-w-[90%] z-50">
-        <div class="bg-[#0a0a0a]/80 backdrop-blur-md border border-white/10 rounded-full px-4 py-2 flex items-center gap-8 shadow-2xl">
-            <div class="flex items-center gap-3 text-white font-semibold tracking-tight">
-                <img src="Icon.png" alt="AXON Logo" class="h-6 w-auto mix-blend-screen" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M12 2L2 22h20L12 2z"/></svg>
-                AXON
+    <!-- Section 2: PYQ Timeline -->
+    <div id="scrubber-section" class="snap-section bg-black flex flex-col items-center justify-center relative text-white overflow-hidden w-full">
+        <div class="text-xl md:text-2xl font-bold tracking-widest uppercase mb-10 text-gray-500 pointer-events-none">PYQ Timeline</div>
+        
+        <div id="pyq-display" class="text-5xl md:text-[80px] leading-none font-bold tabular-nums text-[#3A86FF] tracking-tighter mb-8 pointer-events-none transition-all duration-100">2026 • Feb/Mar</div>
+        
+        <div id="drag-container" class="relative w-full max-w-5xl h-24 flex justify-center mb-6">
+            <div class="absolute top-0 w-0 h-0 border-l-[10px] border-r-[10px] border-b-[14px] border-l-transparent border-r-transparent border-b-[#3A86FF] rotate-180 z-20"></div>
+            <div class="absolute top-4 w-full h-20 overflow-hidden mask-edges-strong">
+                <div id="pyq-track" class="absolute flex items-start left-1/2" style="transform: translateX(0px);">
+                    <div class="pyq-ruler" id="dynamic-ruler"></div>
+                </div>
             </div>
-            <div class="hidden md:flex items-center gap-6 text-sm text-gray-400 font-medium">
-                <a href="#platform" class="hover:text-white transition-colors">Platform</a>
-                <a href="#features" class="hover:text-white transition-colors">Features</a>
-                <a href="#performance" class="hover:text-white transition-colors">Analytics</a>
-            </div>
-            <a href="#waitlist" class="bg-white text-black px-4 py-1.5 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">
-                Waitlist
-            </a>
         </div>
-    </nav>
 
-    <main class="flex-grow">
-        <!-- HERO SECTION -->
-        <section class="relative pt-48 pb-20 md:pt-56 md:pb-32 px-6 flex flex-col items-center text-center">
-            
-            <h1 class="text-5xl md:text-7xl lg:text-[80px] font-semibold tracking-tighter leading-[1.05] mb-6 max-w-4xl text-white animate-fade-in-up">
-                Study with a system.<br>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-gray-500 to-gray-300">Not a stack.</span>
-            </h1>
+        <div id="pyq-filename" class="text-sm md:text-lg font-mono text-gray-400 bg-white/10 px-4 py-2 rounded-lg border border-white/20 pointer-events-none tabular-nums transition-colors duration-200">9709_m26_qp_12.pdf</div>
+    </div>
 
-            <p class="text-lg md:text-xl text-gray-400 max-w-2xl mb-10 tracking-tight animate-fade-in-up" style="animation-delay: 0.1s;">
-                Multi-LLM tutoring, spatial handwriting grading, and adaptive daily planning. The complete infrastructure for CAIE exams.
+    <!-- Section 3: The Mirror (Adaptive Personas) -->
+    <div id="mirror-section" class="snap-section flex flex-col md:flex-row">
+        <div class="mirror-half mirror-left group" id="catalyst-half">
+            <div id="catalyst-aura" class="absolute inset-0 overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-0 bg-[#F8F9FA]">
+                <div class="absolute inset-0 bg-[#E8F2FF]"></div>
+                <div class="aura-orb bg-[#3A86FF] w-96 h-96 -top-20 -left-20" style="animation-delay: 0s;"></div>
+                <div class="aura-orb bg-[#00F0FF] w-80 h-80 top-1/4 right-0" style="animation-delay: -3s;"></div>
+                <div class="aura-orb bg-[#A4C6FF] w-[500px] h-[500px] -bottom-20 left-10" style="animation-delay: -7s;"></div>
+            </div>
+            <div class="mirror-content relative z-10 text-center pointer-events-none">
+                <h2 class="text-4xl md:text-6xl font-bold tracking-tight mb-2">The Catalyst</h2>
+                <p class="text-lg text-gray-500 font-medium">Fluid. Guided. For habit building.</p>
+            </div>
+        </div>
+        <div class="mirror-half mirror-right group">
+            <div class="grid-bg z-0"></div>
+            <div class="mirror-content relative z-10 text-center pointer-events-none">
+                <h2 class="text-4xl md:text-6xl font-bold tracking-tight mb-2">The Oxford</h2>
+                <p class="text-lg text-gray-400 font-medium">Rigid. Absolute. For rapid execution.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 4: Ask Axon AI -->
+    <div id="ai-section" class="snap-section bg-[#000000] flex flex-col md:flex-row items-center justify-center p-8 md:p-20 relative overflow-hidden">
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(58,134,255,0.08)_0%,_transparent_60%)] pointer-events-none"></div>
+
+        <div class="w-full md:w-1/2 flex flex-col items-start justify-center pr-0 md:pr-16 z-10 mb-12 md:mb-0">
+            <h2 class="text-4xl md:text-6xl font-bold tracking-tight text-white mb-6 leading-tight">
+                Make exam execution self-driving
+            </h2>
+            <p class="text-lg md:text-xl text-gray-400 mb-8 max-w-md leading-relaxed">
+                Turn your syllabus doubts into actionable deductive logic. Ask Axon routes, labels, and prioritizes your weak links in real-time.
             </p>
-
-            <div class="flex flex-col sm:flex-row items-center gap-4 animate-fade-in-up" style="animation-delay: 0.2s;">
-                <a href="#waitlist" class="gradient-border-button group">
-                    <span class="gradient-border-button-inner">Reserve your spot</span>
-                </a>
-                <a href="#platform" class="px-6 py-3 rounded-full border border-white/10 text-white hover:bg-white/5 transition-colors font-medium">
-                    Explore Platform
-                </a>
+            <div class="text-[#3A86FF] font-bold tracking-widest uppercase text-sm flex items-center gap-2">
+                <span>1.0</span> <span>Multi-LLM Engine</span> <span class="font-normal">&rarr;</span>
             </div>
+        </div>
 
-            <!-- Centered Android Hero Visual -->
-            <div class="mt-24 w-full max-w-5xl relative animate-fade-in-up flex justify-center items-center h-[500px]" style="animation-delay: 0.4s;">
-                
-                <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-20 pointer-events-none"></div>
-
-                <!-- Left Hero Widget: Spatial Grading AI -->
-                <div class="hidden md:flex absolute left-4 lg:left-12 top-1/4 glass-float p-5 w-64 animate-float-1 z-0 flex-col text-left">
-                    <div class="flex justify-between items-center mb-4">
-                        <div class="text-[10px] font-mono text-axon-cyan tracking-widest font-bold">SPATIAL GRADING</div>
-                        <div class="w-2 h-2 rounded-full bg-axon-cyan animate-pulse shadow-[0_0_8px_#50E3C2]"></div>
-                    </div>
-                    <div class="bg-[#050505] rounded p-3 font-serif text-white/80 italic text-sm border border-white/10 relative mb-3">
-                        v² = u² + 2as<br>
-                        v² = 0 + 2(9.8)(10)<br>
-                        v = 14 m/s
-                        <!-- Glowing Bounding Box -->
-                        <div class="absolute inset-0 border border-axon-cyan/40 rounded bg-axon-cyan/5"></div>
-                        <div class="absolute -bottom-2 -right-2 bg-axon-cyan text-black font-mono text-[9px] px-1.5 py-0.5 font-bold rounded">MATCH</div>
-                    </div>
-                    <div class="text-[11px] text-gray-400 font-mono">Mark Scheme: 2/2</div>
-                </div>
-
-                <!-- Right Hero Widget: Memory Decay Alert -->
-                <div class="hidden md:flex absolute right-4 lg:right-12 bottom-1/4 glass-float p-5 w-64 animate-float-2 z-0 flex-col text-left">
-                    <div class="text-[10px] font-mono text-red-400 tracking-widest font-bold mb-4">RETENTION ALERT</div>
-                    <div class="mb-1">
-                        <span class="text-white font-medium text-sm">0625: EM Induction</span>
-                    </div>
-                    <div class="flex justify-between items-end mb-2">
-                        <span class="text-2xl font-bold text-white tracking-tighter">62<span class="text-sm text-gray-500 font-normal">%</span></span>
-                        <span class="text-[10px] font-mono text-red-400 mb-1">-14% this week</span>
-                    </div>
-                    <!-- Decay Progress Bar -->
-                    <div class="w-full h-1.5 bg-white/10 rounded-full overflow-hidden mb-3">
-                        <div class="h-full w-[62%] bg-gradient-to-r from-red-500 to-axon-purple rounded-full"></div>
-                    </div>
-                    <div class="text-[10px] text-gray-400 font-mono flex items-center gap-1.5 border-t border-white/10 pt-3">
-                        <svg class="w-3 h-3 text-axon-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        QUEUED FOR TODAY'S PLAN
-                    </div>
-                </div>
-                
-                <!-- Main Centered Android Device -->
-                <div class="android-frame">
-                    <div class="android-punch-hole"></div>
-                    
-                    <!-- Status Bar -->
-                    <div class="h-10 w-full flex justify-between items-center px-6 text-[10px] text-gray-400 font-mono mt-2 bg-[#050505]">
-                        <span>14:02</span>
-                        <div class="flex gap-1.5 items-center">
-                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
-                        </div>
-                    </div>
-
-                    <!-- App UI Content -->
-                    <div class="flex-1 w-full bg-[#050505] flex flex-col p-4 overflow-hidden relative border-t border-white/5 text-left">
-                        <!-- Header -->
-                        <div class="pb-4 border-b border-white/10 mb-4 flex items-center justify-between">
-                            <div>
-                                <h3 class="font-semibold text-white">0625 Physics</h3>
-                                <p class="text-xs text-gray-500">Daily Plan • 45m remaining</p>
-                            </div>
-                            <img src="Icon.png" class="w-5 h-5 mix-blend-screen opacity-50" onerror="this.style.display='none'">
-                        </div>
-
-                        <!-- Chat Interface -->
-                        <div class="flex flex-col gap-4 flex-1 mt-2">
-                            <div class="self-end bg-white/10 rounded-2xl rounded-tr-sm px-4 py-2 text-sm max-w-[85%] text-white">
-                                Explain Fleming's Left Hand Rule.
-                            </div>
-                            
-                            <div class="self-start flex flex-col gap-2 max-w-[90%]">
-                                <div class="flex items-center gap-2 text-[10px] font-mono text-axon-blue tracking-widest">
-                                    <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                    ROUTING TO OPENROUTER...
-                                </div>
-                                <div class="bg-[#0070F3]/10 border border-[#0070F3]/20 rounded-2xl rounded-tl-sm px-4 py-3 text-sm text-gray-300">
-                                    It predicts the direction of force on a current-carrying wire in a magnetic field.<br><br>
-                                    • <b>Thumb:</b> Force (Motion)<br>
-                                    • <b>First finger:</b> Magnetic Field<br>
-                                    • <b>Second finger:</b> Current
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Bottom Input -->
-                        <div class="h-12 w-full rounded-full bg-white/5 border border-white/10 mt-auto flex items-center px-4">
-                            <span class="text-xs text-gray-500 font-mono">Ask AXON...</span>
-                            <div class="ml-auto w-6 h-6 rounded-full bg-axon-blue flex items-center justify-center">
-                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Navigation Bar -->
-                    <div class="h-1.5 w-24 bg-white/30 rounded-full mx-auto mb-3 absolute bottom-0 left-1/2 -translate-x-1/2"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PLATFORM SECTION -->
-        <section id="platform" class="py-32 px-6 max-w-7xl mx-auto border-t border-white/10">
-            <div class="mb-20 max-w-3xl reveal">
-                <h2 class="text-3xl md:text-5xl font-semibold tracking-tight mb-6 text-white">Intelligence, built for execution.</h2>
-                <p class="text-gray-400 text-lg leading-relaxed">We abstracted the complexity of prompt engineering and LLM routing. The result is a unified interface that adapts to your syllabus, tracking everything from your handwriting to your forgetting curves.</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Card 1 -->
-                <div class="card-spotlight col-span-1 lg:col-span-2 p-8 min-h-[380px] flex flex-col reveal group">
-                    <div class="flex-1 mb-8 relative">
-                        <div class="absolute inset-0 border border-white/5 bg-[#0a0a0a] rounded-lg p-5 font-mono text-xs overflow-hidden flex flex-col">
-                            <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-3">
-                                <span class="text-gray-500">router/query.ts</span>
-                                <div class="flex gap-2">
-                                    <span class="px-2 py-1 rounded bg-white/10 text-white text-[10px]">Groq</span>
-                                    <span class="px-2 py-1 rounded border border-white/10 text-gray-400 text-[10px]">DeepSeek</span>
-                                </div>
-                            </div>
-                            <div class="text-gray-400 mb-3 bg-white/5 p-3 rounded-r-lg rounded-bl-lg max-w-[80%]">Explain Electromagnetic Induction.</div>
-                            <div class="text-axon-cyan mb-2">System [Llama 3]:</div>
-                            <div class="text-white/80 space-y-2">
-                                <div>When a conductor moves through a magnetic field, it cuts magnetic flux lines (<span class="text-axon-purple">$\Phi = BA \cos \theta$</span>).</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold tracking-tight mb-2 text-white">Unbound Tutoring</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed">Fallback-chain routing automatically connects you to the smartest models for reasoning, speed, or code.</p>
+        <div class="w-full md:w-1/2 flex justify-center z-10">
+            <div class="chat-container w-full max-w-lg bg-[#0A0A0A] border border-[#222] rounded-2xl flex flex-col overflow-hidden">
+                <div class="h-14 border-b border-[#222] flex items-center px-5 gap-3 bg-[#0D0D0D]">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
+                    <span class="text-sm font-medium text-gray-300">Thread in <span class="text-white">#physics-9702</span></span>
+                    <div class="ml-auto flex gap-1">
+                        <div class="w-1.5 h-1.5 bg-gray-600 rounded-full"></div>
+                        <div class="w-1.5 h-1.5 bg-gray-600 rounded-full"></div>
+                        <div class="w-1.5 h-1.5 bg-gray-600 rounded-full"></div>
                     </div>
                 </div>
 
-                <!-- Card 2 -->
-                <div class="card-spotlight col-span-1 p-8 min-h-[380px] flex flex-col reveal group" style="transition-delay: 100ms;">
-                    <div class="flex-1 mb-8 relative flex items-center justify-center border border-white/5 bg-[#0a0a0a] rounded-lg overflow-hidden">
-                        <div class="text-white/60 font-serif text-xl italic absolute opacity-40 transform -rotate-6">
-                            v² = u² + 2as<br>
-                            v² = 0 + 2(9.8)(10)
-                        </div>
-                        <div class="absolute inset-x-0 h-16 bg-gradient-to-b from-transparent via-axon-cyan/20 to-transparent top-0 animate-scan-line"></div>
-                        <div class="absolute bottom-4 right-4 bg-black border border-axon-cyan/50 text-axon-cyan text-[10px] font-mono px-2 py-1 rounded shadow-[0_0_15px_rgba(80,227,194,0.2)]">
-                            Working: 1/1
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold tracking-tight mb-2 text-white">Spatial Grading</h3>
-                        <p class="text-gray-400 text-sm leading-relaxed">Gemini evaluates handwritten diagrams and equations against actual CAIE mark schemes.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- FEATURES SECTION -->
-        <section id="features" class="py-32 px-6 border-t border-white/10 relative overflow-hidden">
-            <div class="max-w-7xl mx-auto space-y-32">
-                
-                <!-- Deep Dive 1: Timer & Focus -->
-                <div class="flex flex-col lg:flex-row items-center gap-16 reveal">
-                    <div class="lg:w-1/2 order-2 lg:order-1">
-                        <!-- Realistic Deep Work Timer -->
-                        <div class="aspect-square max-h-[400px] border border-white/10 bg-[#050505] rounded-2xl p-6 relative flex flex-col items-center justify-center shadow-2xl overflow-hidden">
-                            <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03)_1px,transparent_1px)]" style="background-size: 16px 16px;"></div>
-                            
-                            <div class="text-xs font-mono text-axon-purple tracking-widest mb-8 z-10 font-bold">DEEP WORK SESSION</div>
-                            
-                            <div class="relative w-48 h-48 flex items-center justify-center mb-10 z-10">
-                                <!-- SVG Progress Ring -->
-                                <svg class="absolute inset-0 w-full h-full -rotate-90">
-                                    <!-- Background Track -->
-                                    <circle cx="96" cy="96" r="90" fill="none" stroke="#222" stroke-width="6" />
-                                    <!-- Progress Line -->
-                                    <circle cx="96" cy="96" r="90" fill="none" stroke="#7928CA" stroke-width="6" stroke-dasharray="565" stroke-dashoffset="140" stroke-linecap="round" class="drop-shadow-[0_0_12px_rgba(121,40,202,0.6)]" />
-                                </svg>
-                                <div class="flex flex-col items-center">
-                                    <span class="text-4xl font-mono font-bold text-white tracking-tight">45:00</span>
-                                    <span class="text-[10px] text-gray-500 font-mono mt-1 tracking-widest">REMAINING</span>
-                                </div>
+                <div class="flex-1 p-5 flex flex-col gap-6">
+                    <div class="flex gap-4">
+                        <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-xs font-bold text-white shrink-0">T</div>
+                        <div class="flex flex-col">
+                            <div class="flex items-baseline gap-2 mb-1">
+                                <span class="text-sm font-bold text-white">Tanmay</span>
+                                <span class="text-xs text-gray-500">10:54 PM</span>
                             </div>
+                            <p class="text-sm text-gray-300 leading-relaxed">
+                                I'm stuck on the kinematics question. Why does the vertical velocity become zero at the peak if the horizontal velocity is constant?
+                            </p>
+                        </div>
+                    </div>
 
-                            <div class="flex items-center gap-10 z-10">
-                                <button class="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors">
-                                    <div class="w-3 h-3 bg-white rounded-sm"></div>
-                                </button>
-                                <div class="flex flex-col items-start border-l border-white/10 pl-6">
-                                    <span class="text-[10px] font-mono text-gray-500 tracking-widest">INTENSITY</span>
-                                    <div class="flex gap-1.5 mt-2 items-end h-6">
-                                        <div class="w-1.5 h-3 bg-axon-purple rounded-full opacity-40"></div>
-                                        <div class="w-1.5 h-4 bg-axon-purple rounded-full opacity-60"></div>
-                                        <div class="w-1.5 h-5 bg-axon-purple rounded-full opacity-80"></div>
-                                        <div class="w-1.5 h-6 bg-axon-purple rounded-full shadow-[0_0_8px_#7928CA]"></div>
-                                        <div class="w-1.5 h-2 bg-white/10 rounded-full"></div>
+                    <div class="flex gap-4">
+                        <div class="w-8 h-8 rounded-full bg-[#1C1C1E] border border-[#3A86FF]/30 flex items-center justify-center text-[#3A86FF] shrink-0">
+                            <div class="flex items-end gap-[2px] h-3">
+                                <div class="eq-bar h-[40%]" style="animation-delay: 0.1s"></div>
+                                <div class="eq-bar h-[100%]" style="animation-delay: 0.3s"></div>
+                                <div class="eq-bar h-[60%]" style="animation-delay: 0.2s"></div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col w-full">
+                            <div class="flex items-baseline gap-2 mb-1">
+                                <span class="text-sm font-bold text-[#3A86FF]">Axon AI</span>
+                                <span class="text-xs text-gray-500">10:54 PM</span>
+                            </div>
+                            <p class="text-sm text-gray-300 leading-relaxed mb-3">
+                                Think of motion as two separate dimensions. Gravity only acts downwards, affecting vertical velocity ($v_y$). It has no horizontal component.
+                            </p>
+                            <div class="w-full rounded-lg border border-[#333] bg-[#141414] p-3 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded bg-[#3A86FF]/10 flex items-center justify-center text-[#3A86FF]">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs text-white font-medium">Kinematics Breakdown</div>
+                                        <div class="text-[10px] text-gray-500">9702_m23_qp_22</div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="lg:w-1/2 order-1 lg:order-2">
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-xs font-mono text-gray-400 mb-6">
-                            <span class="w-1.5 h-1.5 rounded-full bg-axon-purple"></span> Core Tools
-                        </div>
-                        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight mb-6 text-white">Engineered for focus.</h2>
-                        <p class="text-gray-400 text-lg mb-8 leading-relaxed">Go beyond simple timers. The AXON study engine enforces minimum durations with a strict lock screen, tracks intensity via random pings, and builds your sessions around Active Recall and the Feynman Technique.</p>
-                        
-                        <div class="space-y-4">
-                            <div class="flex items-start gap-4">
-                                <div class="mt-1 text-axon-purple font-mono">01</div>
-                                <div>
-                                    <h4 class="text-white font-medium">Smart Intensity Tracking</h4>
-                                    <p class="text-sm text-gray-500 mt-1">Random pings verify your focus during deep work sessions.</p>
-                                </div>
+                                <button class="text-xs bg-[#222] hover:bg-[#333] text-white px-3 py-1.5 rounded transition-colors">Start Snippet</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Deep Dive 2: Analytics & Realistic Graph -->
-                <div class="flex flex-col lg:flex-row items-center gap-16 reveal" id="performance">
-                    <div class="lg:w-1/2 order-2 lg:order-1">
-                        <!-- High Fidelity Graph UI showing With/Without AXON diverging properly -->
-                        <div class="border border-white/10 bg-[#0A0A0A] rounded-2xl pt-6 pb-2 shadow-2xl relative overflow-hidden flex flex-col">
-                            
-                            <div class="px-6 flex justify-between items-start relative z-10">
-                                <div>
-                                    <div class="text-[10px] font-mono text-gray-500 mb-1 tracking-widest font-bold">XGBOOST FORECAST</div>
-                                    <div class="text-4xl font-semibold tracking-tighter text-white">A* <span class="text-base text-gray-500 font-normal tracking-normal">Predicted</span></div>
-                                </div>
-                            </div>
-
-                            <!-- Legend (overlaid top left) -->
-                            <div class="px-6 mt-6 flex flex-col gap-3 z-10 relative">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-5 h-5 rounded-full bg-axon-graphLine flex items-center justify-center text-[10px] font-bold text-black font-mono">1</div>
-                                    <span class="text-[11px] font-bold text-axon-graphLine tracking-wider uppercase font-mono">WITH AXON</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <div class="w-5 h-5 rounded-full bg-[#333] flex items-center justify-center text-[10px] font-bold text-gray-400 font-mono">2</div>
-                                    <span class="text-[11px] font-bold text-gray-500 tracking-wider uppercase font-mono">WITHOUT AXON</span>
-                                </div>
-                            </div>
-
-                            <div class="relative w-full h-[280px] mt-2">
-                                <!-- Y-Axis Labels (Grades) -->
-                                <div class="absolute left-6 top-6 bottom-12 flex flex-col justify-between text-[10px] font-mono text-gray-600 z-10 font-bold">
-                                    <span>A*</span>
-                                    <span>A</span>
-                                    <span>B</span>
-                                    <span>C</span>
-                                    <span>D</span>
-                                </div>
-
-                                <!-- X-Axis Labels (Months) -->
-                                <div class="absolute bottom-2 left-16 right-6 flex justify-between text-[10px] font-mono text-gray-600 z-10 font-bold">
-                                    <span>SEP</span><span>NOV</span><span>JAN</span><span>MAR</span><span>MAY</span>
-                                </div>
-
-                                <svg viewBox="0 0 500 250" class="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-                                    <!-- Dashed line (Without AXON - struggles and plateaus at C) -->
-                                    <path d="M 30,200 C 100,210 150,150 230,160 C 300,170 400,140 500,150" fill="none" stroke="#444" stroke-width="2.5" stroke-dasharray="8,6" stroke-linecap="round"/>
-                                    
-                                    <!-- Vertical Line Marker -->
-                                    <line x1="230" y1="20" x2="230" y2="230" stroke="#555" stroke-width="1.5" />
-                                    
-                                    <!-- Point on Solid line (With AXON) at JAN -->
-                                    <g transform="translate(230, 120)">
-                                        <circle cx="0" cy="0" r="14" fill="#B499C8" opacity="0.15" />
-                                        <circle cx="0" cy="0" r="6" fill="#B499C8" />
-                                    </g>
-
-                                    <!-- Solid line (With AXON - climbs to A*) -->
-                                    <path d="M 30,200 C 100,180 150,190 230,120 C 300,50 400,40 500,30" fill="none" stroke="#B499C8" stroke-width="2.5" stroke-linecap="round" class="path-anim"/>
-                                </svg>
-                            </div>
+                <div class="p-3">
+                    <div class="w-full bg-[#1A1A1A] border border-[#333] rounded-xl flex items-center px-4 py-3">
+                        <span class="text-[#3A86FF] text-sm font-medium bg-[#3A86FF]/10 px-2 py-0.5 rounded">@Axon</span>
+                        <span class="text-gray-500 text-sm ml-2">explain projectile motion...</span>
+                        <div class="ml-auto bg-[#3A86FF] w-8 h-8 rounded-lg flex items-center justify-center text-white">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path></svg>
                         </div>
                     </div>
-                    <div class="lg:w-1/2 order-1 lg:order-2">
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-xs font-mono text-gray-400 mb-6">
-                            <span class="w-1.5 h-1.5 rounded-full bg-axon-blue"></span> Analytics
-                        </div>
-                        <h2 class="text-3xl md:text-4xl font-semibold tracking-tight mb-6 text-white">Measure what matters.</h2>
-                        <p class="text-gray-400 text-lg mb-8 leading-relaxed">The analytics engine maps your topic mastery over time. We calculate your Readiness Score using advanced decay factors and use XGBoost machine learning to predict your final grade trajectory.</p>
-                        
-                        <div class="space-y-4">
-                            <div class="flex items-start gap-4">
-                                <div class="mt-1 text-axon-blue font-mono">01</div>
-                                <div>
-                                    <h4 class="text-white font-medium">Trajectory Forecasting</h4>
-                                    <p class="text-sm text-gray-500 mt-1">See exactly where your grades are heading before you sit the exam.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- Up-scaled Restricted Waitlist Widget -->
-        <section id="waitlist" class="py-32 px-6 border-t border-white/10 bg-[#020202]">
-            <div class="max-w-2xl mx-auto reveal relative">
-                <div class="text-center mb-12">
-                    <img src="Icon.png" alt="AXON" class="w-12 h-12 mx-auto mb-6 mix-blend-screen" onerror="this.style.display='none'">
-                    <h2 class="text-4xl md:text-5xl font-semibold tracking-tight mb-4 text-white">Secure your sequence.</h2>
-                    <p class="text-gray-400 text-base md:text-lg">Beta access is strictly limited to CAIE students to ensure compute stability across our LLM infrastructure.</p>
-                </div>
-
-                <div class="card-spotlight p-px rounded-2xl shadow-2xl relative z-10">
-                    <form id="axonForm" class="bg-[#050505] rounded-[15px] p-8 sm:p-10 relative overflow-hidden">
-                        
-                        <!-- Main Form Content -->
-                        <div class="space-y-6 transition-opacity duration-300" id="formContent">
-                            <div>
-                                <label class="block text-xs font-mono text-gray-500 mb-2 uppercase tracking-wider font-medium">Email Address</label>
-                                <input type="email" name="email" required class="w-full bg-[#0a0a0a] border border-white/10 rounded-xl px-5 h-14 text-white text-base focus:outline-none focus:border-axon-blue transition-colors font-mono placeholder-gray-600" placeholder="student@domain.com">
-                            </div>
-                            
-                            <!-- Restricted Read-only Fields -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block text-xs font-mono text-gray-500 mb-2 uppercase tracking-wider font-medium">Role</label>
-                                    <input type="text" name="role" value="Student" readonly class="w-full bg-[#0a0a0a]/50 text-gray-400 border border-white/5 rounded-xl px-5 h-14 focus:outline-none cursor-not-allowed font-mono select-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-mono text-gray-500 mb-2 uppercase tracking-wider font-medium">Board</label>
-                                    <input type="text" name="board" value="CAIE" readonly class="w-full bg-[#0a0a0a]/50 text-gray-400 border border-white/5 rounded-xl px-5 h-14 focus:outline-none cursor-not-allowed font-mono select-none">
-                                </div>
-                            </div>
-
-                            <button type="submit" id="submitBtn" class="w-full mt-8 bg-white text-black font-semibold text-lg py-4 rounded-xl hover:bg-gray-200 transition-colors flex justify-center items-center h-14">
-                                <span id="btnText">Request Access</span>
-                            </button>
-                        </div>
-
-                        <!-- Spectacular Success State -->
-                        <div id="successMsg" class="hidden absolute inset-0 bg-[#050505] flex-col items-center justify-center p-8 text-center z-20">
-                            <img src="Icon.png" alt="AXON" class="w-20 h-20 mb-6 mix-blend-screen logo-spin-glow" onerror="this.style.display='none'">
-                            <h4 class="text-white text-3xl font-semibold mb-3 tracking-tight animate-fade-in-up" style="animation-delay: 0.5s;">Welcome to Greatness.</h4>
-                            <p class="text-base text-gray-400 animate-fade-in-up" style="animation-delay: 0.7s;">Your sequence is secured. We will contact you soon.</p>
-                        </div>
-                    </form>
                 </div>
             </div>
-        </section>
-    </main>
-
-    <footer class="border-t border-white/10 bg-[#000] py-8 px-6 text-center">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-mono text-gray-600">
-            <div>AXON v1.0.0+1</div>
-            <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                Systems Operational
-            </div>
-            <div>&copy; 2026 AXON Intelligence</div>
         </div>
-    </footer>
+    </div>
+
+    <!-- Section 5: The Terminal & Footer -->
+    <div id="terminal-section" class="snap-section bg-[#F8F9FA] flex flex-col justify-between">
+        
+        <div class="w-full flex flex-col items-center justify-center p-8 relative flex-1 z-10">
+            <div id="terminal-label" class="text-sm font-bold uppercase tracking-widest text-gray-400 mb-6 transition-all duration-300">Who are we talking to?</div>
+            
+            <form id="waitlist-form" class="w-full text-center relative z-10">
+                <input type="text" id="terminal-input" class="border-b-2 border-black bg-transparent text-4xl md:text-6xl text-center outline-none w-full max-w-2xl font-bold tracking-tight focus:border-[#3A86FF] transition-colors pb-4" placeholder="Enter first name" required autocomplete="off">
+            </form>
+            
+            <!-- Tasteful Kinetic Pill Success State -->
+            <div id="success-wrapper" class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full flex-col items-center justify-center">
+                <div id="success-pill" class="bg-black flex items-center px-6 overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.15)]">
+                    <div id="pill-content" class="w-full flex items-center justify-between opacity-0 whitespace-nowrap opacity-0">
+                        <span class="text-white font-bold text-sm tracking-widest uppercase flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 bg-[#3A86FF] rounded-full animate-pulse"></span>
+                            Axon Beta
+                        </span>
+                        <span id="pass-name" class="text-gray-400 font-mono text-xs tracking-widest uppercase px-4 truncate max-w-[150px]"></span>
+                        <span class="text-[#3A86FF] font-mono text-xs tracking-widest uppercase">Queued</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Animated Footer Container -->
+        <div id="footer-container" class="w-full bg-white border-t border-black absolute bottom-0 z-20 flex flex-col h-[80px]">
+            <div class="w-full h-[80px] px-8 flex flex-col md:flex-row justify-between items-center text-sm font-bold text-gray-500 shrink-0">
+                <div>© 2026 Axon Labs. All rights reserved.</div>
+                <div class="flex gap-6 mt-2 md:mt-0">
+                    <button onclick="toggleLegalSheet('Privacy Policy')" class="hover:text-black transition-colors focus:outline-none uppercase tracking-widest text-xs">Privacy Policy</button>
+                    <button onclick="toggleLegalSheet('Terms of Service')" class="hover:text-black transition-colors focus:outline-none uppercase tracking-widest text-xs">Terms of Service</button>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto px-8 pb-8 legal-content-fade flex flex-col">
+                <div class="w-full flex justify-between items-center mb-8 border-b border-gray-200 pb-4">
+                    <h3 id="legal-title" class="text-2xl font-bold tracking-tight text-black">Legal</h3>
+                    <button onclick="toggleLegalSheet()" class="text-gray-400 hover:text-black font-bold uppercase tracking-widest text-xs flex items-center gap-2">
+                        Close 
+                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1L13 13M1 13L13 1"/></svg>
+                    </button>
+                </div>
+                <div class="text-gray-600 space-y-6 max-w-4xl font-medium">
+                    <p>This is a strictly designated preview build. Axon uses on-device processing and end-to-end encrypted tunnels for its Multi-LLM engine. Your academic data, waitlist emails, and usage telemetry are securely isolated.</p>
+                    <p>By joining the waitlist, you agree to receive beta access instructions. No spam. No folder friction. Only absolute execution.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // Scroll Reveal
-        function reveal() {
-            var reveals = document.querySelectorAll(".reveal");
-            for (var i = 0; i < reveals.length; i++) {
-                var windowHeight = window.innerHeight;
-                var elementTop = reveals[i].getBoundingClientRect().top;
-                var elementVisible = 100;
-                if (elementTop < windowHeight - elementVisible) {
-                    reveals[i].classList.add("active");
-                }
-            }
-        }
-        window.addEventListener("scroll", reveal);
-        reveal(); // Trigger initially
+        /* --- 1. Morphing Scroll Logic --- */
+        const voidContainer = document.getElementById('void-container');
+        const morphDot = document.getElementById('morph-dot');
+        const pillUi = document.getElementById('pill-ui');
+        
+        window.addEventListener('scroll', () => {
+            const rect = voidContainer.getBoundingClientRect();
+            const scrollableHeight = rect.height - window.innerHeight;
+            let scrollPercent = 0;
+            if (scrollableHeight > 0) scrollPercent = Math.max(0, Math.min(1, -rect.top / scrollableHeight));
 
-        // Spotlight Mouse Tracking Effect for Bento Cards
-        document.querySelectorAll('.card-spotlight').forEach(card => {
-            card.addEventListener('mousemove', e => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                card.style.setProperty('--mouse-x', `${x}px`);
-                card.style.setProperty('--mouse-y', `${y}px`);
-            });
+            let width = 12, height = 12, borderRadius = 6, uiOpacity = 0;
+
+            if (scrollPercent < 0.2) {
+                const p = scrollPercent / 0.2;
+                width = 12 + (368 * p); 
+                height = 12 + (118 * p); 
+                borderRadius = 6 + (59 * p); 
+            } else if (scrollPercent < 0.5) {
+                width = 380; height = 130; borderRadius = 65;
+                uiOpacity = (scrollPercent - 0.2) / 0.3;
+            } else if (scrollPercent < 0.8) {
+                width = 380; height = 130; borderRadius = 65; uiOpacity = 1;
+            } else {
+                const p = (scrollPercent - 0.8) / 0.2;
+                width = 380 + ((window.innerWidth - 380) * Math.pow(p, 3) * 3); 
+                height = 130 + ((window.innerHeight - 130) * Math.pow(p, 3) * 5);
+                borderRadius = 65 * (1 - p);
+                uiOpacity = 1 - p; 
+            }
+
+            morphDot.style.width = scrollPercent > 0.95 ? '100vw' : `${width}px`;
+            morphDot.style.height = scrollPercent > 0.95 ? '100vh' : `${height}px`;
+            morphDot.style.borderRadius = `${Math.max(0, borderRadius)}px`;
+            pillUi.style.opacity = uiOpacity;
         });
 
-        // Optimistic Fire-and-Forget Form Submission
-        document.getElementById('axonForm').addEventListener('submit', function(e) {
+        /* --- 1.5 Live Activity Timer Syncing --- */
+        const pillTimerEl = document.getElementById('pill-timer');
+        const pillTrack = document.getElementById('pill-track');
+        const durationMs = 15 * 60 * 1000; 
+        let startTime = performance.now();
+
+        function updatePillEngine(time) {
+            const elapsed = time - startTime;
+            const remaining = Math.max(0, durationMs - elapsed);
+            
+            const totalSeconds = Math.ceil(remaining / 1000);
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            pillTimerEl.innerText = `${m}:${s.toString().padStart(2, '0')}`;
+            
+            const remainingMinutes = remaining / 60000;
+            const diff = 15 - remainingMinutes; 
+            pillTrack.style.transform = `translateX(${diff * 15.5}px)`;
+
+            if (remaining > 0) requestAnimationFrame(updatePillEngine);
+        }
+        requestAnimationFrame(updatePillEngine);
+
+        /* --- 2. Kinetic Scrubber Logic --- */
+        const dragContainer = document.getElementById('drag-container');
+        const pyqTrack = document.getElementById('pyq-track');
+        const pyqDisplay = document.getElementById('pyq-display');
+        const pyqFilename = document.getElementById('pyq-filename');
+        const dynamicRuler = document.getElementById('dynamic-ruler');
+        
+        const pyqs = [];
+        const seasons = ['Feb/Mar', 'May/June', 'Oct/Nov'];
+        for (let y = 2019; y <= 2025; y++) {
+            seasons.forEach(s => pyqs.push({ year: y, season: s }));
+        }
+        pyqs.push({ year: 2026, season: 'Feb/Mar' }); 
+        
+        const pixelsPerItem = 60; 
+        dynamicRuler.style.width = `${(pyqs.length - 1) * pixelsPerItem}px`;
+        
+        let currentIndex = pyqs.length - 1; 
+        let currentTx = -currentIndex * pixelsPerItem; 
+        pyqTrack.style.transform = `translateX(${currentTx}px)`;
+
+        function generateFilename(item) {
+            const yy = item.year.toString().slice(-2);
+            let s_code = 'm';
+            if (item.season === 'May/June') s_code = 's';
+            if (item.season === 'Oct/Nov') s_code = 'w';
+            return `9709_${s_code}${yy}_qp_12.pdf`;
+        }
+
+        function updatePyqText() {
+            let i = Math.round(-currentTx / pixelsPerItem);
+            i = Math.max(0, Math.min(pyqs.length - 1, i)); 
+            
+            const item = pyqs[i];
+            pyqDisplay.innerText = `${item.year} • ${item.season}`;
+            pyqFilename.innerText = generateFilename(item);
+        }
+        updatePyqText(); 
+
+        let isDragging = false;
+        let startX = 0;
+        let initialTx = 0;
+
+        const onDragStart = (e) => {
+            isDragging = true;
+            startX = e.touches ? e.touches[0].clientX : e.clientX;
+            initialTx = currentTx;
+            pyqTrack.style.transition = 'none'; 
+            pyqFilename.classList.remove('text-gray-400', 'border-white/20');
+            pyqFilename.classList.add('text-[#3A86FF]', 'border-[#3A86FF]/50', 'bg-[#3A86FF]/10');
+        };
+
+        const onDragMove = (e) => {
+            if (!isDragging) return;
+            const x = e.touches ? e.touches[0].clientX : e.clientX;
+            const dx = (x - startX) * 1.5; 
+            currentTx = initialTx + dx;
+            
+            const maxTx = 0;
+            const minTx = -(pyqs.length - 1) * pixelsPerItem;
+            
+            if (currentTx > maxTx) currentTx = maxTx + (currentTx - maxTx) * 0.2;
+            if (currentTx < minTx) currentTx = minTx + (currentTx - minTx) * 0.2;
+            
+            updatePyqText(); 
+            pyqTrack.style.transform = `translateX(${currentTx}px)`;
+        };
+
+        const onDragEnd = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            let targetIndex = Math.round(-currentTx / pixelsPerItem);
+            targetIndex = Math.max(0, Math.min(pyqs.length - 1, targetIndex));
+            
+            currentTx = -targetIndex * pixelsPerItem;
+            pyqTrack.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            pyqTrack.style.transform = `translateX(${currentTx}px)`;
+            
+            updatePyqText();
+            pyqFilename.classList.add('text-gray-400', 'border-white/20');
+            pyqFilename.classList.remove('text-[#3A86FF]', 'border-[#3A86FF]/50', 'bg-[#3A86FF]/10');
+        };
+
+        dragContainer.addEventListener('mousedown', onDragStart);
+        window.addEventListener('mousemove', onDragMove);
+        window.addEventListener('mouseup', onDragEnd);
+        dragContainer.addEventListener('touchstart', onDragStart, {passive: true});
+        window.addEventListener('touchmove', onDragMove, {passive: true});
+        window.addEventListener('touchend', onDragEnd);
+
+        /* --- 5. Terminal Waitlist Logic (Kinetic Pill Success & Sheet Logging) --- */
+        const form = document.getElementById('waitlist-form');
+        const input = document.getElementById('terminal-input');
+        const successWrapper = document.getElementById('success-wrapper');
+        const successPill = document.getElementById('success-pill');
+        const pillContent = document.getElementById('pill-content');
+        const label = document.getElementById('terminal-label');
+        
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycby_3fq_ftR2VBoF9pvWRIk2T2eI4uicmJjPC8rlS130CmFAbBBJU2hcoINl-42I1XxQ/exec";
+        
+        let currentStep = 'name';
+        let userName = '';
+
+        form.addEventListener('submit', (e) => {
             e.preventDefault();
             
-            const formContent = document.getElementById('formContent');
-            const success = document.getElementById('successMsg');
-            const globalDots = document.getElementById('successDots');
-            
-            // 1. Instantly trigger Success UI & Animations
-            formContent.style.opacity = '0';
-            setTimeout(() => {
-                formContent.style.display = 'none';
-                success.classList.remove('hidden');
-                success.classList.add('flex');
-                
-                // Trigger the global site dot-glow animation
-                globalDots.classList.add('active');
-            }, 300);
-            
-            // 2. Data Collection
-            const email = this.querySelector('input[name="email"]').value;
-            const role = this.querySelector('input[name="role"]').value;
-            const board = this.querySelector('input[name="board"]').value;
-            
-            // 3. Background Fetch to Google Apps Script
-            // REPLACE THIS URL WITH YOUR LIVE WEB APP URL
-            const scriptURL = 'https://script.google.com/macros/s/AKfycby_3fq_ftR2VBoF9pvWRIk2T2eI4uicmJjPC8rlS130CmFAbBBJU2hcoINl-42I1XxQ/exec'; 
-            
-            const formData = new FormData();
-            formData.append('email', email);
-            formData.append('role', role);
-            formData.append('board', board);
-            formData.append('timestamp', new Date().toISOString());
+            if (currentStep === 'name') {
+                if(input.value.trim() !== '') {
+                    userName = input.value.trim();
+                    
+                    input.style.opacity = 0;
+                    label.style.opacity = 0;
+                    
+                    setTimeout(() => {
+                        input.value = '';
+                        input.type = 'email';
+                        input.placeholder = 'Enter email address';
+                        label.innerText = 'Step 2: Destination';
+                        input.style.opacity = 1;
+                        label.style.opacity = 1;
+                        currentStep = 'email';
+                        input.focus();
+                    }, 200);
+                }
+            } else if (currentStep === 'email') {
+                if(input.value.trim() !== '') {
+                    const userEmail = input.value.trim();
+                    
+                    // 1. Hide form instantly
+                    input.style.opacity = 0;
+                    label.style.opacity = 0;
+                    
+                    setTimeout(() => {
+                        form.style.display = 'none';
+                        label.style.display = 'none';
+                        
+                        document.getElementById('pass-name').innerText = `// ${userName}`;
+                        
+                        // 2. Reveal the Kinetic Pill Morph Animation
+                        successWrapper.classList.remove('hidden');
+                        successWrapper.classList.add('flex');
+                        successPill.classList.add('morph-to-pill');
+                        pillContent.classList.add('fade-in-data');
+                        
+                    }, 200);
+                    
+                    // 3. Background Payload Execution
+                    const formData = new URLSearchParams();
+                    formData.append("timestamp", new Date().toISOString());
+                    formData.append("name", userName);
+                    formData.append("email", userEmail);
 
-            // Fire and forget - No waiting for the UI
-            fetch(scriptURL, {
-                method: 'POST',
-                body: formData,
-                mode: 'no-cors'
-            }).catch(error => console.error('Background submission error:', error));
+                    fetch(GAS_WEB_APP_URL, {
+                        method: "POST",
+                        body: formData,
+                        mode: "no-cors" 
+                    }).catch(err => console.log("Background fetch complete."));
+                }
+            }
         });
+
+        /* --- 6. Footer Legal Sheet (Upward Expand) --- */
+        const footerContainer = document.getElementById('footer-container');
+        const legalTitle = document.getElementById('legal-title');
+        let isFooterExpanded = false;
+
+        function toggleLegalSheet(title) {
+            if (!isFooterExpanded && title) {
+                legalTitle.innerText = title;
+                footerContainer.style.height = '60vh';
+                footerContainer.classList.add('legal-active');
+                isFooterExpanded = true;
+            } else {
+                footerContainer.classList.remove('legal-active');
+                footerContainer.style.height = '80px';
+                isFooterExpanded = false;
+            }
+        }
     </script>
 </body>
 </html>

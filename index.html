@@ -25,7 +25,7 @@
         .snap-section {
             scroll-snap-align: start;
             scroll-snap-stop: always;
-            height: 100vh;
+            height: 100dvh;
             width: 100vw;
             position: relative;
             overflow: hidden;
@@ -76,6 +76,7 @@
         #drag-container {
             user-select: none;
             cursor: grab;
+            touch-action: pan-y;
         }
         #drag-container:active {
             cursor: grabbing;
@@ -177,14 +178,14 @@
 
         .fade-in-data {
             animation: text-reveal 0.4s ease forwards;
-            animation-delay: 0.6s; /* Waits for pill to expand */
+            animation-delay: 0.6s; 
         }
         @keyframes text-reveal {
             from { opacity: 0; transform: translateY(4px); }
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* --- 6. Footer Legal Sheet (Upward Slide) --- */
+        /* --- 6. Footer Legal Sheet --- */
         #footer-container {
             transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
@@ -231,9 +232,9 @@
 
     <!-- Section 2: PYQ Timeline -->
     <div id="scrubber-section" class="snap-section bg-black flex flex-col items-center justify-center relative text-white overflow-hidden w-full">
-        <div class="text-xl md:text-2xl font-bold tracking-widest uppercase mb-10 text-gray-500 pointer-events-none">PYQ Timeline</div>
+        <div class="text-lg md:text-2xl font-bold tracking-widest uppercase mb-6 md:mb-10 text-gray-500 pointer-events-none">PYQ Timeline</div>
         
-        <div id="pyq-display" class="text-5xl md:text-[80px] leading-none font-bold tabular-nums text-[#3A86FF] tracking-tighter mb-8 pointer-events-none transition-all duration-100">2026 • Feb/Mar</div>
+        <div id="pyq-display" class="text-4xl md:text-[80px] leading-none font-bold tabular-nums text-[#3A86FF] tracking-tighter mb-4 md:mb-8 pointer-events-none transition-all duration-100">2026 • Feb/Mar</div>
         
         <div id="drag-container" class="relative w-full max-w-5xl h-24 flex justify-center mb-6">
             <div class="absolute top-0 w-0 h-0 border-l-[10px] border-r-[10px] border-b-[14px] border-l-transparent border-r-transparent border-b-[#3A86FF] rotate-180 z-20"></div>
@@ -244,10 +245,10 @@
             </div>
         </div>
 
-        <div id="pyq-filename" class="text-sm md:text-lg font-mono text-gray-400 bg-white/10 px-4 py-2 rounded-lg border border-white/20 pointer-events-none tabular-nums transition-colors duration-200">9709_m26_qp_12.pdf</div>
+        <div id="pyq-filename" class="text-xs md:text-lg font-mono text-gray-400 bg-white/10 px-4 py-2 rounded-lg border border-white/20 pointer-events-none tabular-nums transition-colors duration-200">9709_m26_qp_12.pdf</div>
     </div>
 
-    <!-- Section 3: The Mirror (Adaptive Personas) -->
+    <!-- Section 3: The Mirror -->
     <div id="mirror-section" class="snap-section flex flex-col md:flex-row">
         <div class="mirror-half mirror-left group" id="catalyst-half">
             <div id="catalyst-aura" class="absolute inset-0 overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-0 bg-[#F8F9FA]">
@@ -256,100 +257,100 @@
                 <div class="aura-orb bg-[#00F0FF] w-80 h-80 top-1/4 right-0" style="animation-delay: -3s;"></div>
                 <div class="aura-orb bg-[#A4C6FF] w-[500px] h-[500px] -bottom-20 left-10" style="animation-delay: -7s;"></div>
             </div>
-            <div class="mirror-content relative z-10 text-center pointer-events-none">
-                <h2 class="text-4xl md:text-6xl font-bold tracking-tight mb-2">The Catalyst</h2>
-                <p class="text-lg text-gray-500 font-medium">Fluid. Guided. For habit building.</p>
+            <div class="mirror-content relative z-10 text-center pointer-events-none p-6">
+                <h2 class="text-3xl md:text-6xl font-bold tracking-tight mb-2">The Catalyst</h2>
+                <p class="text-base md:text-lg text-gray-500 font-medium">Fluid. Guided. For habit building.</p>
             </div>
         </div>
         <div class="mirror-half mirror-right group">
             <div class="grid-bg z-0"></div>
-            <div class="mirror-content relative z-10 text-center pointer-events-none">
-                <h2 class="text-4xl md:text-6xl font-bold tracking-tight mb-2">The Oxford</h2>
-                <p class="text-lg text-gray-400 font-medium">Rigid. Absolute. For rapid execution.</p>
+            <div class="mirror-content relative z-10 text-center pointer-events-none p-6">
+                <h2 class="text-3xl md:text-6xl font-bold tracking-tight mb-2">The Oxford</h2>
+                <p class="text-base md:text-lg text-gray-400 font-medium">Rigid. Absolute. For rapid execution.</p>
             </div>
         </div>
     </div>
 
-    <!-- Section 4: Ask Axon AI -->
-    <div id="ai-section" class="snap-section bg-[#000000] flex flex-col md:flex-row items-center justify-center p-8 md:p-20 relative overflow-hidden">
+    <!-- Section 4: Ask Axon AI (Responsive) -->
+    <div id="ai-section" class="snap-section bg-[#000000] flex flex-col md:flex-row items-center justify-center p-6 md:p-20 relative overflow-hidden">
         <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(58,134,255,0.08)_0%,_transparent_60%)] pointer-events-none"></div>
 
-        <div class="w-full md:w-1/2 flex flex-col items-start justify-center pr-0 md:pr-16 z-10 mb-12 md:mb-0">
-            <h2 class="text-4xl md:text-6xl font-bold tracking-tight text-white mb-6 leading-tight">
+        <div class="w-full md:w-1/2 flex flex-col items-center md:items-start text-center md:text-left justify-center pr-0 md:pr-16 z-10 mb-6 md:mb-0 shrink-0">
+            <h2 class="text-3xl md:text-6xl font-bold tracking-tight text-white mb-3 md:mb-6 leading-tight">
                 Make exam execution self-driving
             </h2>
-            <p class="text-lg md:text-xl text-gray-400 mb-8 max-w-md leading-relaxed">
+            <p class="text-sm md:text-xl text-gray-400 mb-4 md:mb-8 max-w-md leading-relaxed hidden md:block">
                 Turn your syllabus doubts into actionable deductive logic. Ask Axon routes, labels, and prioritizes your weak links in real-time.
             </p>
-            <div class="text-[#3A86FF] font-bold tracking-widest uppercase text-sm flex items-center gap-2">
+            <div class="text-[#3A86FF] font-bold tracking-widest uppercase text-xs md:text-sm flex items-center justify-center md:justify-start gap-2">
                 <span>1.0</span> <span>Multi-LLM Engine</span> <span class="font-normal">&rarr;</span>
             </div>
         </div>
 
-        <div class="w-full md:w-1/2 flex justify-center z-10">
-            <div class="chat-container w-full max-w-lg bg-[#0A0A0A] border border-[#222] rounded-2xl flex flex-col overflow-hidden">
-                <div class="h-14 border-b border-[#222] flex items-center px-5 gap-3 bg-[#0D0D0D]">
-                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
-                    <span class="text-sm font-medium text-gray-300">Thread in <span class="text-white">#physics-9702</span></span>
+        <div class="w-full md:w-1/2 flex justify-center z-10 h-full max-h-[55vh] md:max-h-none items-center">
+            <div class="chat-container w-full max-w-lg bg-[#0A0A0A] border border-[#222] rounded-2xl flex flex-col overflow-hidden text-xs md:text-sm h-full max-h-[450px]">
+                <div class="h-10 md:h-14 border-b border-[#222] flex items-center px-4 md:px-5 gap-3 bg-[#0D0D0D] shrink-0">
+                    <svg class="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
+                    <span class="font-medium text-gray-300">Thread in <span class="text-white">#physics-9702</span></span>
                     <div class="ml-auto flex gap-1">
-                        <div class="w-1.5 h-1.5 bg-gray-600 rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-gray-600 rounded-full"></div>
-                        <div class="w-1.5 h-1.5 bg-gray-600 rounded-full"></div>
+                        <div class="w-1 h-1 md:w-1.5 md:h-1.5 bg-gray-600 rounded-full"></div>
+                        <div class="w-1 h-1 md:w-1.5 md:h-1.5 bg-gray-600 rounded-full"></div>
+                        <div class="w-1 h-1 md:w-1.5 md:h-1.5 bg-gray-600 rounded-full"></div>
                     </div>
                 </div>
 
-                <div class="flex-1 p-5 flex flex-col gap-6">
-                    <div class="flex gap-4">
-                        <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-xs font-bold text-white shrink-0">T</div>
+                <div class="flex-1 p-4 md:p-5 flex flex-col gap-4 md:gap-6 overflow-y-auto">
+                    <div class="flex gap-3 md:gap-4">
+                        <div class="w-6 h-6 md:w-8 md:h-8 rounded-full bg-gray-800 flex items-center justify-center font-bold text-white shrink-0">T</div>
                         <div class="flex flex-col">
                             <div class="flex items-baseline gap-2 mb-1">
-                                <span class="text-sm font-bold text-white">Tanmay</span>
-                                <span class="text-xs text-gray-500">10:54 PM</span>
+                                <span class="font-bold text-white">Tanmay</span>
+                                <span class="text-[10px] md:text-xs text-gray-500">10:54 PM</span>
                             </div>
-                            <p class="text-sm text-gray-300 leading-relaxed">
+                            <p class="text-gray-300 leading-relaxed">
                                 I'm stuck on the kinematics question. Why does the vertical velocity become zero at the peak if the horizontal velocity is constant?
                             </p>
                         </div>
                     </div>
 
-                    <div class="flex gap-4">
-                        <div class="w-8 h-8 rounded-full bg-[#1C1C1E] border border-[#3A86FF]/30 flex items-center justify-center text-[#3A86FF] shrink-0">
-                            <div class="flex items-end gap-[2px] h-3">
-                                <div class="eq-bar h-[40%]" style="animation-delay: 0.1s"></div>
-                                <div class="eq-bar h-[100%]" style="animation-delay: 0.3s"></div>
-                                <div class="eq-bar h-[60%]" style="animation-delay: 0.2s"></div>
+                    <div class="flex gap-3 md:gap-4">
+                        <div class="w-6 h-6 md:w-8 md:h-8 rounded-full bg-[#1C1C1E] border border-[#3A86FF]/30 flex items-center justify-center text-[#3A86FF] shrink-0">
+                            <div class="flex items-end gap-[2px] h-2 md:h-3">
+                                <div class="eq-bar h-[40%] w-[2px] md:w-[4px]" style="animation-delay: 0.1s"></div>
+                                <div class="eq-bar h-[100%] w-[2px] md:w-[4px]" style="animation-delay: 0.3s"></div>
+                                <div class="eq-bar h-[60%] w-[2px] md:w-[4px]" style="animation-delay: 0.2s"></div>
                             </div>
                         </div>
                         <div class="flex flex-col w-full">
                             <div class="flex items-baseline gap-2 mb-1">
-                                <span class="text-sm font-bold text-[#3A86FF]">Axon AI</span>
-                                <span class="text-xs text-gray-500">10:54 PM</span>
+                                <span class="font-bold text-[#3A86FF]">Axon AI</span>
+                                <span class="text-[10px] md:text-xs text-gray-500">10:54 PM</span>
                             </div>
-                            <p class="text-sm text-gray-300 leading-relaxed mb-3">
+                            <p class="text-gray-300 leading-relaxed mb-3">
                                 Think of motion as two separate dimensions. Gravity only acts downwards, affecting vertical velocity ($v_y$). It has no horizontal component.
                             </p>
-                            <div class="w-full rounded-lg border border-[#333] bg-[#141414] p-3 flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded bg-[#3A86FF]/10 flex items-center justify-center text-[#3A86FF]">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            <div class="w-full rounded-lg border border-[#333] bg-[#141414] p-2 md:p-3 flex items-center justify-between">
+                                <div class="flex items-center gap-2 md:gap-3">
+                                    <div class="w-6 h-6 md:w-8 md:h-8 rounded bg-[#3A86FF]/10 flex items-center justify-center text-[#3A86FF]">
+                                        <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                                     </div>
                                     <div>
-                                        <div class="text-xs text-white font-medium">Kinematics Breakdown</div>
-                                        <div class="text-[10px] text-gray-500">9702_m23_qp_22</div>
+                                        <div class="text-[10px] md:text-xs text-white font-medium">Kinematics Breakdown</div>
+                                        <div class="text-[8px] md:text-[10px] text-gray-500">9702_m23_qp_22</div>
                                     </div>
                                 </div>
-                                <button class="text-xs bg-[#222] hover:bg-[#333] text-white px-3 py-1.5 rounded transition-colors">Start Snippet</button>
+                                <button class="text-[10px] md:text-xs bg-[#222] hover:bg-[#333] text-white px-2 py-1 md:px-3 md:py-1.5 rounded transition-colors whitespace-nowrap">Start Snippet</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="p-3">
-                    <div class="w-full bg-[#1A1A1A] border border-[#333] rounded-xl flex items-center px-4 py-3">
-                        <span class="text-[#3A86FF] text-sm font-medium bg-[#3A86FF]/10 px-2 py-0.5 rounded">@Axon</span>
-                        <span class="text-gray-500 text-sm ml-2">explain projectile motion...</span>
-                        <div class="ml-auto bg-[#3A86FF] w-8 h-8 rounded-lg flex items-center justify-center text-white">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path></svg>
+                <div class="p-2 md:p-3 shrink-0">
+                    <div class="w-full bg-[#1A1A1A] border border-[#333] rounded-lg md:rounded-xl flex items-center px-3 py-2 md:px-4 md:py-3">
+                        <span class="text-[#3A86FF] font-medium bg-[#3A86FF]/10 px-1.5 py-0.5 rounded">@Axon</span>
+                        <span class="text-gray-500 ml-2 truncate">explain projectile motion...</span>
+                        <div class="ml-auto bg-[#3A86FF] w-6 h-6 md:w-8 md:h-8 rounded md:rounded-lg flex items-center justify-center text-white shrink-0">
+                            <svg class="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path></svg>
                         </div>
                     </div>
                 </div>
@@ -360,47 +361,47 @@
     <!-- Section 5: The Terminal & Footer -->
     <div id="terminal-section" class="snap-section bg-[#F8F9FA] flex flex-col justify-between">
         
-        <div class="w-full flex flex-col items-center justify-center p-8 relative flex-1 z-10">
-            <div id="terminal-label" class="text-sm font-bold uppercase tracking-widest text-gray-400 mb-6 transition-all duration-300">Who are we talking to?</div>
+        <div class="w-full flex flex-col items-center justify-center p-6 md:p-8 relative flex-1 z-10">
+            <div id="terminal-label" class="text-xs md:text-sm font-bold uppercase tracking-widest text-gray-400 mb-6 transition-all duration-300">Who are we talking to?</div>
             
             <form id="waitlist-form" class="w-full text-center relative z-10">
-                <input type="text" id="terminal-input" class="border-b-2 border-black bg-transparent text-4xl md:text-6xl text-center outline-none w-full max-w-2xl font-bold tracking-tight focus:border-[#3A86FF] transition-colors pb-4" placeholder="Enter first name" required autocomplete="off">
+                <input type="text" id="terminal-input" class="border-b-2 border-black bg-transparent text-3xl md:text-6xl text-center outline-none w-full max-w-2xl font-bold tracking-tight focus:border-[#3A86FF] transition-colors pb-2 md:pb-4" placeholder="Enter first name" required autocomplete="off">
             </form>
             
             <!-- Tasteful Kinetic Pill Success State -->
-            <div id="success-wrapper" class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full flex-col items-center justify-center">
-                <div id="success-pill" class="bg-black flex items-center px-6 overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.15)]">
-                    <div id="pill-content" class="w-full flex items-center justify-between opacity-0 whitespace-nowrap opacity-0">
-                        <span class="text-white font-bold text-sm tracking-widest uppercase flex items-center gap-2">
+            <div id="success-wrapper" class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full flex-col items-center justify-center px-4">
+                <div id="success-pill" class="bg-black flex items-center px-4 md:px-6 overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.15)]">
+                    <div id="pill-content" class="w-full flex items-center justify-between opacity-0 whitespace-nowrap">
+                        <span class="text-white font-bold text-xs md:text-sm tracking-widest uppercase flex items-center gap-2">
                             <span class="w-1.5 h-1.5 bg-[#3A86FF] rounded-full animate-pulse"></span>
                             Axon Beta
                         </span>
-                        <span id="pass-name" class="text-gray-400 font-mono text-xs tracking-widest uppercase px-4 truncate max-w-[150px]"></span>
-                        <span class="text-[#3A86FF] font-mono text-xs tracking-widest uppercase">Queued</span>
+                        <span id="pass-name" class="text-gray-400 font-mono text-[10px] md:text-xs tracking-widest uppercase px-2 md:px-4 truncate max-w-[100px] md:max-w-[150px]"></span>
+                        <span class="text-[#3A86FF] font-mono text-[10px] md:text-xs tracking-widest uppercase">Queued</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Animated Footer Container -->
-        <div id="footer-container" class="w-full bg-white border-t border-black absolute bottom-0 z-20 flex flex-col h-[80px]">
-            <div class="w-full h-[80px] px-8 flex flex-col md:flex-row justify-between items-center text-sm font-bold text-gray-500 shrink-0">
+        <div id="footer-container" class="w-full bg-white border-t border-black absolute bottom-0 z-20 flex flex-col h-[70px] md:h-[80px]">
+            <div class="w-full h-[70px] md:h-[80px] px-4 md:px-8 flex flex-col md:flex-row justify-between items-center text-xs md:text-sm font-bold text-gray-500 shrink-0 py-2 md:py-0">
                 <div>© 2026 Axon Labs. All rights reserved.</div>
-                <div class="flex gap-6 mt-2 md:mt-0">
-                    <button onclick="toggleLegalSheet('Privacy Policy')" class="hover:text-black transition-colors focus:outline-none uppercase tracking-widest text-xs">Privacy Policy</button>
-                    <button onclick="toggleLegalSheet('Terms of Service')" class="hover:text-black transition-colors focus:outline-none uppercase tracking-widest text-xs">Terms of Service</button>
+                <div class="flex gap-4 md:gap-6 mt-1 md:mt-0">
+                    <button onclick="toggleLegalSheet('Privacy Policy')" class="hover:text-black transition-colors focus:outline-none uppercase tracking-widest text-[10px] md:text-xs">Privacy Policy</button>
+                    <button onclick="toggleLegalSheet('Terms of Service')" class="hover:text-black transition-colors focus:outline-none uppercase tracking-widest text-[10px] md:text-xs">Terms of Service</button>
                 </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto px-8 pb-8 legal-content-fade flex flex-col">
-                <div class="w-full flex justify-between items-center mb-8 border-b border-gray-200 pb-4">
-                    <h3 id="legal-title" class="text-2xl font-bold tracking-tight text-black">Legal</h3>
-                    <button onclick="toggleLegalSheet()" class="text-gray-400 hover:text-black font-bold uppercase tracking-widest text-xs flex items-center gap-2">
+            <div class="flex-1 overflow-y-auto px-6 md:px-8 pb-8 legal-content-fade flex flex-col">
+                <div class="w-full flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
+                    <h3 id="legal-title" class="text-xl md:text-2xl font-bold tracking-tight text-black">Legal</h3>
+                    <button onclick="toggleLegalSheet()" class="text-gray-400 hover:text-black font-bold uppercase tracking-widest text-[10px] md:text-xs flex items-center gap-2">
                         Close 
-                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1L13 13M1 13L13 1"/></svg>
+                        <svg width="10" height="10" md:width="12" md:height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1L13 13M1 13L13 1"/></svg>
                     </button>
                 </div>
-                <div class="text-gray-600 space-y-6 max-w-4xl font-medium">
+                <div class="text-sm md:text-base text-gray-600 space-y-4 md:space-y-6 max-w-4xl font-medium">
                     <p>This is a strictly designated preview build. Axon uses on-device processing and end-to-end encrypted tunnels for its Multi-LLM engine. Your academic data, waitlist emails, and usage telemetry are securely isolated.</p>
                     <p>By joining the waitlist, you agree to receive beta access instructions. No spam. No folder friction. Only absolute execution.</p>
                 </div>
@@ -469,7 +470,7 @@
         }
         requestAnimationFrame(updatePillEngine);
 
-        /* --- 2. Kinetic Scrubber Logic --- */
+        /* --- 2. Kinetic Scrubber Logic with Haptics --- */
         const dragContainer = document.getElementById('drag-container');
         const pyqTrack = document.getElementById('pyq-track');
         const pyqDisplay = document.getElementById('pyq-display');
@@ -488,6 +489,8 @@
         
         let currentIndex = pyqs.length - 1; 
         let currentTx = -currentIndex * pixelsPerItem; 
+        let lastHapticIndex = currentIndex;
+
         pyqTrack.style.transform = `translateX(${currentTx}px)`;
 
         function generateFilename(item) {
@@ -502,6 +505,12 @@
             let i = Math.round(-currentTx / pixelsPerItem);
             i = Math.max(0, Math.min(pyqs.length - 1, i)); 
             
+            // Haptic Feedback Engine
+            if (i !== lastHapticIndex) {
+                if (navigator.vibrate) navigator.vibrate(10); // Physical tick
+                lastHapticIndex = i;
+            }
+
             const item = pyqs[i];
             pyqDisplay.innerText = `${item.year} • ${item.season}`;
             pyqFilename.innerText = generateFilename(item);
@@ -557,10 +566,10 @@
         window.addEventListener('mousemove', onDragMove);
         window.addEventListener('mouseup', onDragEnd);
         dragContainer.addEventListener('touchstart', onDragStart, {passive: true});
-        window.addEventListener('touchmove', onDragMove, {passive: true});
+        window.addEventListener('touchmove', onDragMove, {passive: false}); // passive false allows preventDefault if needed
         window.addEventListener('touchend', onDragEnd);
 
-        /* --- 5. Terminal Waitlist Logic (Kinetic Pill Success & Sheet Logging) --- */
+        /* --- 5. Terminal Waitlist Logic (Kinetic Pill & Sheet Logging) --- */
         const form = document.getElementById('waitlist-form');
         const input = document.getElementById('terminal-input');
         const successWrapper = document.getElementById('success-wrapper');
@@ -598,7 +607,6 @@
                 if(input.value.trim() !== '') {
                     const userEmail = input.value.trim();
                     
-                    // 1. Hide form instantly
                     input.style.opacity = 0;
                     label.style.opacity = 0;
                     
@@ -608,7 +616,6 @@
                         
                         document.getElementById('pass-name').innerText = `// ${userName}`;
                         
-                        // 2. Reveal the Kinetic Pill Morph Animation
                         successWrapper.classList.remove('hidden');
                         successWrapper.classList.add('flex');
                         successPill.classList.add('morph-to-pill');
@@ -616,7 +623,6 @@
                         
                     }, 200);
                     
-                    // 3. Background Payload Execution
                     const formData = new URLSearchParams();
                     formData.append("timestamp", new Date().toISOString());
                     formData.append("name", userName);
@@ -637,14 +643,19 @@
         let isFooterExpanded = false;
 
         function toggleLegalSheet(title) {
+            // Check if mobile via window width
+            const isMobile = window.innerWidth < 768;
+            const expandedHeight = isMobile ? '80vh' : '60vh';
+            const collapsedHeight = isMobile ? '70px' : '80px';
+
             if (!isFooterExpanded && title) {
                 legalTitle.innerText = title;
-                footerContainer.style.height = '60vh';
+                footerContainer.style.height = expandedHeight;
                 footerContainer.classList.add('legal-active');
                 isFooterExpanded = true;
             } else {
                 footerContainer.classList.remove('legal-active');
-                footerContainer.style.height = '80px';
+                footerContainer.style.height = collapsedHeight;
                 isFooterExpanded = false;
             }
         }

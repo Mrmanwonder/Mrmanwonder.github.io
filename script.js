@@ -29,7 +29,6 @@
   gate.setAttribute('role', 'status');
   gate.setAttribute('aria-live', 'polite');
   gate.innerHTML = `
-    <span class="intro-gate__eyebrow">one little moment</span>
     <strong id="introGateLabel">the garden is waking up…</strong>
     <span class="intro-gate__track" aria-hidden="true"><i id="introGateFill"></i></span>
   `;

@@ -1,3 +1,134 @@
+
+// V23 — opening garden gate.
+// Keep the viewer on the hero until its 22-second bloom is complete and the page is loaded.
+(() => {
+  'use strict';
+
+  const root = document.documentElement;
+  const heroFrame = document.querySelector('.exact-hero-frame');
+  if (!root || !heroFrame) {
+    root?.classList.remove('intro-locked');
+    return;
+  }
+
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const BLOOM_MS = reduced ? 650 : 22500;
+  let bloomStarted = false;
+  let bloomFinished = false;
+  let pageLoaded = document.readyState === 'complete';
+  let startTime = 0;
+  let animationFrame = 0;
+  let unlocked = false;
+
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  scrollTo(0, 0);
+
+  const gate = document.createElement('div');
+  gate.className = 'intro-gate';
+  gate.id = 'introGate';
+  gate.setAttribute('role', 'status');
+  gate.setAttribute('aria-live', 'polite');
+  gate.innerHTML = `
+    <span class="intro-gate__eyebrow">one little moment</span>
+    <strong id="introGateLabel">the garden is waking up…</strong>
+    <span class="intro-gate__track" aria-hidden="true"><i id="introGateFill"></i></span>
+  `;
+  document.body.appendChild(gate);
+
+  const label = gate.querySelector('#introGateLabel');
+  const fill = gate.querySelector('#introGateFill');
+
+  const blockedKeys = new Set([
+    'ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' ','Spacebar'
+  ]);
+
+  const blockWheel = event => {
+    if (!unlocked) event.preventDefault();
+  };
+  const blockTouch = event => {
+    if (!unlocked) event.preventDefault();
+  };
+  const blockKeys = event => {
+    if (!unlocked && blockedKeys.has(event.key)) event.preventDefault();
+  };
+  const holdTop = () => {
+    if (!unlocked && scrollY !== 0) scrollTo(0, 0);
+  };
+
+  addEventListener('wheel', blockWheel, {passive:false});
+  addEventListener('touchmove', blockTouch, {passive:false});
+  addEventListener('keydown', blockKeys);
+  addEventListener('scroll', holdTop, {passive:true});
+
+  function cleanupGuards(){
+    removeEventListener('wheel', blockWheel);
+    removeEventListener('touchmove', blockTouch);
+    removeEventListener('keydown', blockKeys);
+    removeEventListener('scroll', holdTop);
+  }
+
+  function unlock(){
+    if (unlocked || !bloomFinished || !pageLoaded) return;
+    unlocked = true;
+    cancelAnimationFrame(animationFrame);
+    fill.style.transform = 'scaleX(1)';
+    label.textContent = 'the story is ready  ↓';
+    gate.classList.add('is-ready');
+    scrollTo(0, 0);
+
+    setTimeout(() => {
+      root.classList.remove('intro-locked');
+      cleanupGuards();
+      gate.classList.add('is-leaving');
+      setTimeout(() => gate.remove(), 700);
+    }, reduced ? 100 : 650);
+  }
+
+  function tick(now){
+    if (!startTime) startTime = now;
+    const p = Math.min(1, (now - startTime) / BLOOM_MS);
+    fill.style.transform = `scaleX(${p.toFixed(4)})`;
+
+    if (p >= 1) {
+      bloomFinished = true;
+      unlock();
+      return;
+    }
+    animationFrame = requestAnimationFrame(tick);
+  }
+
+  function beginBloomClock(){
+    if (bloomStarted) return;
+    bloomStarted = true;
+    startTime = 0;
+    animationFrame = requestAnimationFrame(tick);
+  }
+
+  // The hero's own animation reaches its fully-bloomed rest state at 22 seconds.
+  heroFrame.addEventListener('load', beginBloomClock, {once:true});
+
+  // Cached same-origin iframe may already be complete before this deferred script attaches.
+  try {
+    if (heroFrame.contentDocument?.readyState === 'complete') {
+      queueMicrotask(beginBloomClock);
+    }
+  } catch (_) {}
+
+  // Last-resort safeguard against a cached iframe load event being missed.
+  setTimeout(beginBloomClock, 1200);
+
+  if (!pageLoaded) {
+    addEventListener('load', () => {
+      pageLoaded = true;
+      unlock();
+    }, {once:true});
+  }
+
+  // If the page was already complete when this script ran.
+  if (pageLoaded) unlock();
+})();
+
+
 (() => {
   'use strict';
   const $=(s,r=document)=>r.querySelector(s); const $$=(s,r=document)=>[...r.querySelectorAll(s)];

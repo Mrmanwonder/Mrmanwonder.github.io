@@ -782,9 +782,10 @@ html.intro-locked body{
 .intro-gate{
   position:fixed;
   left:50%;
-  bottom:clamp(26px,4.2vh,46px);
+  top:clamp(22px,3.8vh,40px);
+  bottom:auto;
   z-index:150;
-  width:min(250px,calc(100vw - 48px));
+  width:min(220px,calc(100vw - 48px));
   transform:translateX(-50%);
   display:grid;
   justify-items:center;
@@ -803,9 +804,9 @@ html.intro-locked body{
 
 .intro-gate strong{
   margin:0;
-  font:italic 400 clamp(16px,1.35vw,19px)/1.15 var(--serif);
+  font:italic 400 clamp(14px,1.05vw,16px)/1.15 var(--serif);
   letter-spacing:.012em;
-  color:rgba(83,96,79,.72);
+  color:rgba(83,96,79,.58);
   text-shadow:0 1px 0 rgba(255,255,255,.38);
 }
 
@@ -813,7 +814,7 @@ html.intro-locked body{
 
 .intro-gate__track{
   position:relative;
-  width:min(148px,58vw);
+  width:min(116px,48vw);
   height:1px;
   overflow:hidden;
   background:rgba(99,113,92,.14);
@@ -841,12 +842,13 @@ html.intro-locked .soundtrack-control{opacity:.72}
 
 @media(max-width:700px){
   .intro-gate{
-    bottom:70px;
-    width:min(230px,calc(100vw - 40px));
+    top:22px;
+    bottom:auto;
+    width:min(210px,calc(100vw - 40px));
     gap:7px;
   }
-  .intro-gate strong{font-size:16px}
-  .intro-gate__track{width:132px}
+  .intro-gate strong{font-size:14px}
+  .intro-gate__track{width:108px}
 }
 
 @media(prefers-reduced-motion:reduce){

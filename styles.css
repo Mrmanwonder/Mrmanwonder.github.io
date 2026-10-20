@@ -1027,3 +1027,6 @@ html.intro-locked .soundtrack-control{opacity:.72}
   .finale--cinematic .finale__after{transition:none}
   .finale--cinematic .finale__replay{transition:none}
 }
+
+/* Hide Bloom completely once the Eyes finale takes over. */
+.soundtrack-control[hidden]{display:none!important}

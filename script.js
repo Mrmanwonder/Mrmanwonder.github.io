@@ -522,7 +522,7 @@
     const start=scrollY;
     const delta=destination-start;
     if(reduced || Math.abs(delta)<3){
-      scrollTo({top:destination,behavior:'instant'});
+      scrollTo({top:destination,behavior:'auto'});
       return Promise.resolve(true);
     }
     return new Promise(resolve=>{
@@ -624,8 +624,12 @@
     if(videoUsable)footer.classList.add('has-video');
   });
   video.addEventListener('ended',finished);
-  video.addEventListener('error',fallback);
-  source?.addEventListener('error',fallback);
+  video.addEventListener('error',()=>{
+    if(state==='opening'||state==='playing'||state==='holding')fallback();
+  });
+  source?.addEventListener('error',()=>{
+    if(state==='opening'||state==='playing'||state==='holding')fallback();
+  });
   video.addEventListener('timeupdate',()=>{
     if(video.currentTime>.12 && state==='playing')clearTimeout(timer);
     if(!video.paused)clearTimeout(stallTimer);

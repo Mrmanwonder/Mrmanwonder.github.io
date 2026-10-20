@@ -1167,3 +1167,48 @@ main{width:100%;min-width:0}
 @media(prefers-reduced-motion:reduce){
   .finale--cinematic .finale__after{transition:none}
 }
+
+
+/* The closing endpaper: the final eye frame lives quietly beside the words
+   when media is available. Without media, it remains a polished paper ending. */
+.finale--cinematic .finale__screen{background:#faf3ee}
+.finale--cinematic .finale__after{
+  background:linear-gradient(140deg,#fffbf7 0%,#fdf5ef 54%,#f5ede7 100%);
+}
+.finale--cinematic.has-video.is-complete .finale__film{
+  opacity:.65;
+  filter:saturate(.74) brightness(1.12);
+  object-position:65% center;
+  transition:opacity 1100ms ease,filter 1100ms ease;
+}
+.finale--cinematic.has-video.is-complete .finale__after{
+  background:linear-gradient(90deg,#fdf8f3 0%,rgba(253,248,243,.99) 46%,rgba(253,248,243,.76) 72%,rgba(253,248,243,.42) 100%);
+}
+@media(min-width:920px){
+  .finale--cinematic.has-video.is-complete .finale__after{
+    align-items:flex-start;
+    text-align:left;
+  }
+  .finale--cinematic.has-video.is-complete .finale__inner{
+    margin:auto 0;
+    max-width:min(670px,65vw);
+    text-align:left;
+  }
+  .finale--cinematic.has-video.is-complete .finale__inner .finale__message{
+    margin-left:0;
+    margin-right:0;
+  }
+  .finale--cinematic.has-video.is-complete .secret{
+    margin-left:0;
+  }
+}
+@media(max-width:919px){
+  .finale--cinematic.has-video.is-complete .finale__film{
+    opacity:.18;
+    object-fit:cover;
+    object-position:center;
+  }
+  .finale--cinematic.has-video.is-complete .finale__after{
+    background:linear-gradient(180deg,rgba(255,251,247,.86),rgba(250,242,236,.97) 55%,#f9f1eb);
+  }
+}

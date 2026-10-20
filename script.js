@@ -424,7 +424,7 @@
     footer.classList.add('is-complete');
     after.inert=false;
     after.setAttribute('aria-hidden','false');
-    replay.hidden=!sourceLoaded;
+    replay.hidden=!(Number.isFinite(video.duration) && video.duration>0);
     audioHint.hidden=true;
   }
   function loadVideo(){
@@ -435,7 +435,8 @@
     video.load();
   }
   async function play(){
-    clearWatches();
+    clearTimeout(stallWatch);
+    // Keep the already-armed load timeout active while play() is pending.
     // Browser policies may reject audio autoplay. Play muted if necessary.
     try{
       video.muted=false;
@@ -450,9 +451,7 @@
         return;
       }
     }
-    watchdog=setTimeout(()=>{
-      if(!ended && video.currentTime<.2)showMessage();
-    },10000);
+    // Once playback advances, the waiting/stall events guard buffering.
   }
   function alignFinale(){
     // Set scroll-behavior temporarily to auto, even if the site uses smooth scroll.

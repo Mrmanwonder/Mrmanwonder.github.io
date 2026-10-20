@@ -447,244 +447,263 @@
 })();
 
 
-// Blue-hour ending: a quick interruptible scroll, light reveal, still film and letter.
+// Reliable, non-blocking Eyes finale — intent-aware snap + muted autoplay.
+// Crucially, continued DOWNWARD wheel momentum must not cancel the snap.
 (() => {
   'use strict';
-  const footer=document.querySelector('#finale');
-  const video=document.querySelector('#eyesFinaleVideo');
-  const after=document.querySelector('#finaleAfter');
-  const replay=document.querySelector('#eyesReplay');
-  const audioHint=document.querySelector('#eyesEnableAudio');
-  if(!footer||!video||!after||!replay)return;
+  const footer=document.getElementById('finale');
+  const video=document.getElementById('eyesFinaleVideo');
+  const after=document.getElementById('finaleAfter');
+  const replay=document.getElementById('eyesReplay');
+  const audioHint=document.getElementById('eyesEnableAudio');
+  if(!footer || !video || !after || !replay) return;
 
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const source=video.querySelector('source[data-src]');
-  let started=false, entering=false, completed=false, sourceLoaded=false;
-  let videoUsable=false, watchdog=0, stallWatch=0, revealTimer=0;
-  let activeSnapCancel=null, mouseRaf=0;
-  const clearTimers=()=>{
-    clearTimeout(watchdog);clearTimeout(stallWatch);clearTimeout(revealTimer);
-  };
-  function stopBloom(){
-    if(window.bloomSoundtrack?.stopForFinale)window.bloomSoundtrack.stopForFinale();
-    else {
-      const audio=document.querySelector('#siteSoundtrack');
-      if(audio){audio.pause();audio.volume=0;}
-      const control=document.querySelector('#soundtrackControl');
-      if(control)control.hidden=true;
-    }
-  }
+  let state='idle', sourceLoaded=false, videoUsable=false;
+  let armed=true, scrollRaf=0, snapRaf=0, timer=0, stallTimer=0;
+  let snapAbort=null, pointerRaf=0, lastScrollY=scrollY;
+  const clearTimers=()=>{clearTimeout(timer);clearTimeout(stallTimer);};
+
   function loadFilm(){
     if(sourceLoaded)return;
     sourceLoaded=true;
-    if(source){source.src=source.dataset.src;source.removeAttribute('data-src');}
+    video.muted=true;                    // reliable autoplay on mobile and desktop
+    video.defaultMuted=true;
+    video.setAttribute('muted','');
+    if(source){
+      source.src=source.dataset.src;
+      source.removeAttribute('data-src');
+    }
     video.preload='auto';
     video.load();
   }
-  function reveal(){
-    if(completed)return;
-    completed=true;
-    entering=false;
+
+  function stopBloom(){
+    if(window.bloomSoundtrack?.stopForFinale){
+      window.bloomSoundtrack.stopForFinale();
+      return;
+    }
+    const song=document.getElementById('siteSoundtrack');
+    if(song){song.volume=0;song.pause();}
+    const control=document.getElementById('soundtrackControl');
+    if(control)control.hidden=true;
+  }
+
+  function showFooter(){
+    if(state==='complete')return;
+    state='complete';
     clearTimers();
-    // Freeze the last real video frame beneath the blue endpaper.
     video.pause();
-    footer.classList.remove('is-entering');
+    footer.classList.remove('is-entering','is-playing','is-holding');
     footer.classList.add('is-complete');
     after.inert=false;
     after.setAttribute('aria-hidden','false');
     replay.hidden=!videoUsable;
     audioHint.hidden=true;
   }
-  function onFilmEnded(){
-    if(completed)return;
-    clearTimeout(watchdog);
-    clearTimeout(stallWatch);
-    footer.classList.add('is-holding');
-    // Two unhurried seconds on the final frame before the footer appears.
-    clearTimeout(revealTimer);
-    revealTimer=setTimeout(reveal,2000);
-  }
-  function fail(){
+  function finished(){
+    if(state==='complete' || state==='holding')return;
+    state='holding';
     clearTimers();
-    footer.classList.remove('is-holding');
-    reveal(); // No film means don't hide the birthday message.
+    footer.classList.add('is-holding');
+    // Preserve the actual last frame for two complete seconds.
+    timer=setTimeout(showFooter,2000);
+  }
+  function fallback(){
+    // Even a slow/missing video cannot leave the viewer on an empty ending.
+    showFooter();
   }
 
-  // Never intercept navigation. A new wheel, touch or keyboard gesture cancels
-  // the automated scroll and the visitor can always navigate up again.
-  function easedSnap(){
-    if(reduced)return Promise.resolve(true);
-    const destination=Math.round(footer.getBoundingClientRect().top+scrollY);
-    const initial=scrollY;
-    const distance=destination-initial;
-    if(Math.abs(distance)<3)return Promise.resolve(true);
+  // A short native-feeling eased scroll. Momentum *toward* the finale doesn't
+  // interrupt it; intentional movement BACK UP can, and scrolling is never locked.
+  function moveIntoPlace(){
+    const destination=Math.round(scrollY+footer.getBoundingClientRect().top);
+    const start=scrollY;
+    const delta=destination-start;
+    if(reduced || Math.abs(delta)<3){
+      scrollTo({top:destination,behavior:'instant'});
+      return Promise.resolve(true);
+    }
     return new Promise(resolve=>{
-      const duration=590;
-      const began=performance.now();
-      let frame=0,finished=false;
-      function cleanup(){
-        removeEventListener('wheel',interrupt);
-        removeEventListener('touchstart',interrupt);
-        removeEventListener('pointerdown',interrupt);
-        removeEventListener('keydown',interrupt);
-      }
-      function finish(success){
-        if(finished)return;
-        finished=true;
-        cancelAnimationFrame(frame);
-        cleanup();
-        activeSnapCancel=null;
-        resolve(success);
-      }
-      function interrupt(){finish(false);}
-      activeSnapCancel=interrupt;
-      addEventListener('wheel',interrupt,{passive:true});
-      addEventListener('touchstart',interrupt,{passive:true});
-      addEventListener('pointerdown',interrupt,{passive:true});
-      addEventListener('keydown',interrupt);
+      let done=false;
+      const duration=520, began=performance.now();
       const root=document.documentElement;
       const previous=root.style.scrollBehavior;
       root.style.scrollBehavior='auto';
-      function step(now){
-        if(finished)return;
-        const p=Math.min(1,(now-began)/duration);
-        // Swift yet graceful: soft start and gentle arrival.
-        const eased=p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
-        scrollTo(0,initial+distance*eased);
-        if(p<1)frame=requestAnimationFrame(step);
-        else finish(true);
-      }
-      frame=requestAnimationFrame(step);
-      // Restore inline scroll behavior after animation in all cases.
-      const originalFinish=finish;
-      finish=function(success){
+      const cancel=()=>{
+        if(done)return;
+        done=true;
+        cancelAnimationFrame(snapRaf);
         root.style.scrollBehavior=previous;
-        originalFinish(success);
+        removeEventListener('wheel',onWheel);
+        removeEventListener('keydown',onKey);
+        removeEventListener('touchstart',onTouchStart);
+        removeEventListener('touchmove',onTouchMove);
+        snapAbort=null;
+        resolve(false);
       };
+      const onWheel=e=>{if(e.deltaY<-5)cancel();};
+      const onKey=e=>{if(['ArrowUp','PageUp','Home'].includes(e.key))cancel();};
+      let touchY=0;
+      const onTouchStart=e=>{touchY=e.touches?.[0]?.clientY||0;};
+      const onTouchMove=e=>{
+        const y=e.touches?.[0]?.clientY;
+        if(typeof y==='number' && y-touchY>12)cancel();
+      };
+      snapAbort=cancel;
+      addEventListener('wheel',onWheel,{passive:true});
+      addEventListener('keydown',onKey,{passive:true});
+      addEventListener('touchstart',onTouchStart,{passive:true});
+      addEventListener('touchmove',onTouchMove,{passive:true});
+      const frame=now=>{
+        if(done)return;
+        const p=Math.min(1,(now-began)/duration);
+        const eased=p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+        scrollTo(0,start+delta*eased);
+        if(p<1){snapRaf=requestAnimationFrame(frame);return;}
+        done=true;
+        root.style.scrollBehavior=previous;
+        removeEventListener('wheel',onWheel);
+        removeEventListener('keydown',onKey);
+        removeEventListener('touchstart',onTouchStart);
+        removeEventListener('touchmove',onTouchMove);
+        snapAbort=null;
+        resolve(true);
+      };
+      snapRaf=requestAnimationFrame(frame);
     });
   }
 
-  async function runFilm(){
-    if(completed)return;
-    try{
-      video.muted=false;
-      await video.play();
-    }catch(_){
-      if(completed)return;
-      try{
-        video.muted=true;
-        await video.play();
-        audioHint.hidden=false;
-      }catch(_2){fail();return;}
-    }
-  }
-
   async function begin(replaying=false){
-    if((started||entering)&&!replaying)return;
-    if(replaying && activeSnapCancel)activeSnapCancel();
-    entering=true;
-    completed=false;
+    if(state!=='idle' && !(replaying && state==='complete'))return;
+    state='snapping';
+    armed=false;
     clearTimers();
-    footer.classList.remove('is-complete','is-holding','is-entering','is-playing');
+    footer.classList.remove('is-complete','is-playing','is-holding','is-entering');
     after.inert=true;
     after.setAttribute('aria-hidden','true');
     replay.hidden=true;
     audioHint.hidden=true;
+    stopBloom();
     loadFilm();
 
-    const snapped=await easedSnap();
-    if(!snapped){
-      entering=false;
+    const reached=await moveIntoPlace();
+    if(!reached){
+      state='idle';
+      // Re-arm only after leaving the footer; don't fight the user's scroll.
       return;
     }
-    entering=false;
-    started=true;
-    stopBloom();
-    if(reduced&&!replaying){reveal();return;}
-    try{video.pause();video.currentTime=0;}catch(_){}
+    state='opening';
+    if(reduced && !replaying){showFooter();return;}
+    try {video.pause();video.currentTime=0;}catch(_){}
+    // Begin fading in the real video frame before commencing playback.
     footer.classList.add('is-entering');
-    // The black-to-video reveal precedes the first moving frame.
-    await new Promise(r=>setTimeout(r,reduced?0:450));
-    if(completed)return;
+    await new Promise(r=>setTimeout(r,430));
+    if(state!=='opening')return;
+
+    state='playing';
     footer.classList.add('is-playing');
-    watchdog=setTimeout(()=>{
-      if(!completed && video.currentTime<.16)fail();
-    },11000);
-    runFilm();
+    video.muted=true;
+    // HTML muted+playsinline is compatible with scroll-triggered autoplay.
+    clearTimers();
+    timer=setTimeout(()=>{
+      if(state==='playing' && video.currentTime<.12)fallback();
+    },12500);
+    try{
+      const promise=video.play();
+      if(promise && typeof promise.catch==='function')await promise;
+      if(state==='playing')audioHint.hidden=false; // Optional tap to enable film audio.
+    }catch(err){
+      fallback();
+    }
   }
 
   video.addEventListener('loadedmetadata',()=>{
-    if(Number.isFinite(video.duration)&&video.duration>0){
-      videoUsable=true;
-      footer.classList.add('has-video');
-    }
+    videoUsable=Number.isFinite(video.duration) && video.duration>0;
+    if(videoUsable)footer.classList.add('has-video');
   });
-  video.addEventListener('ended',onFilmEnded);
-  video.addEventListener('error',fail);
-  source?.addEventListener('error',()=>{if(started)fail()});
-  video.addEventListener('waiting',()=>{
-    if(!started||completed)return;
-    clearTimeout(stallWatch);
-    stallWatch=setTimeout(fail,15000);
-  });
-  video.addEventListener('playing',()=>clearTimeout(stallWatch));
+  video.addEventListener('ended',finished);
+  video.addEventListener('error',fallback);
+  source?.addEventListener('error',fallback);
   video.addEventListener('timeupdate',()=>{
-    if(video.currentTime>.2)clearTimeout(watchdog);
-    clearTimeout(stallWatch);
+    if(video.currentTime>.12 && state==='playing')clearTimeout(timer);
+    if(!video.paused)clearTimeout(stallTimer);
   });
+  video.addEventListener('waiting',()=>{
+    if(state!=='playing')return;
+    clearTimeout(stallTimer);
+    stallTimer=setTimeout(fallback,16000);
+  });
+  video.addEventListener('playing',()=>clearTimeout(stallTimer));
+
   replay.addEventListener('click',e=>{
-    e.preventDefault();begin(true);
+    e.preventDefault();
+    begin(true);
   });
   audioHint.addEventListener('click',async e=>{
     e.preventDefault();
-    try{video.muted=false;await video.play();audioHint.hidden=true;}
-    catch(_){video.muted=true;}
+    try {
+      video.muted=false;video.removeAttribute('muted');
+      await video.play();
+      audioHint.hidden=true;
+    }catch(_){video.muted=true;}
   });
-  // Start the download one viewport before arrival, not on the first page load.
+
+  // Download close to the finale, without delaying the initial garden.
   if('IntersectionObserver' in window){
-    const near=new IntersectionObserver(entries=>{
-      if(entries.some(e=>e.isIntersecting)){loadFilm();near.disconnect();}
-    },{rootMargin:'110% 0px'});
-    near.observe(footer);
+    const preload=new IntersectionObserver(entries=>{
+      if(entries.some(e=>e.isIntersecting)){
+        loadFilm();
+        preload.disconnect();
+      }
+    },{rootMargin:'1100px 0px'});
+    preload.observe(footer);
   }
-  let lastY=scrollY, wasIntersecting=false;
-  const onView=(entries)=>{
-    const showing=entries.some(e=>e.isIntersecting);
-    if(showing && !wasIntersecting && !started && !entering){
+
+  function checkEntry(){
+    scrollRaf=0;
+    const y=scrollY;
+    const rect=footer.getBoundingClientRect();
+    const entering=rect.top<=innerHeight*.92 && rect.bottom>0;
+    const approachingDown=y>=lastScrollY-2;
+    lastScrollY=y;
+    if(rect.top>innerHeight*.97 && state==='idle')armed=true;
+    if(state==='idle' && armed && entering && approachingDown){
       begin();
     }
-    wasIntersecting=showing;
-    if(started && !completed && !footer.classList.contains('is-holding')){
-      if(!showing && !video.paused)video.pause();
-      if(showing && video.paused && video.currentTime>.05 && video.currentTime<video.duration-.04){
+    // Visitors can return to previous sections at any time. Pause video
+    // offscreen and resume it if they return before the film has ended.
+    if(state==='playing'){
+      if(rect.bottom<0 || rect.top>innerHeight){
+        if(!video.paused)video.pause();
+      }else if(video.paused && video.currentTime>.05 &&
+          Number.isFinite(video.duration) && video.currentTime<video.duration-.05){
         video.play().catch(()=>{});
       }
     }
-    lastY=scrollY;
-  };
-  if('IntersectionObserver' in window){
-    const io=new IntersectionObserver(onView,{threshold:.07});
-    io.observe(footer);
-  }else{
-    addEventListener('scroll',()=>{
-      const showing=footer.getBoundingClientRect().top<innerHeight*.93;
-      if(showing && !wasIntersecting && !started && !entering)begin();
-      wasIntersecting=showing;
-    },{passive:true});
   }
+  const requestCheck=()=>{
+    if(!scrollRaf)scrollRaf=requestAnimationFrame(checkEntry);
+  };
+  addEventListener('scroll',requestCheck,{passive:true});
+  addEventListener('resize',requestCheck,{passive:true});
+  addEventListener('pageshow',requestCheck);
+  // Let initial page restoration settle before checking direct footer links.
+  requestAnimationFrame(requestCheck);
 
-  // A small pool of blue light responds to the visitor's mouse. No looping
-  // animation or expensive filters; just one CSS-variable update per frame.
+  // The interactive footer light moves on the compositor, not through costly
+  // full-page gradient repaints.
   after.addEventListener('pointermove',e=>{
-    if(!completed || e.pointerType==='touch')return;
+    if(state!=='complete' || e.pointerType==='touch')return;
     const rect=after.getBoundingClientRect();
     const x=(e.clientX-rect.left).toFixed(1)+'px';
     const y=(e.clientY-rect.top).toFixed(1)+'px';
-    if(mouseRaf)cancelAnimationFrame(mouseRaf);
-    mouseRaf=requestAnimationFrame(()=>{
+    if(pointerRaf)cancelAnimationFrame(pointerRaf);
+    pointerRaf=requestAnimationFrame(()=>{
       after.style.setProperty('--glow-x',x);
       after.style.setProperty('--glow-y',y);
-      mouseRaf=0;
+      pointerRaf=0;
     });
   },{passive:true});
   after.addEventListener('pointerleave',()=>{

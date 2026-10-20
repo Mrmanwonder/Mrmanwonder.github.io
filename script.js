@@ -218,24 +218,20 @@
   }
 
   function updateLetter(y){
-    // The letter is the only expensive per-word scroll animation.
+    // Bring back the original continuous, scroll-linked word-by-word reveal.
+    // Word positions are measured on layout changes, never per scroll frame.
     if(y+innerHeight<letterTop-innerHeight*.3 || y>letterEnd+innerHeight*.3)return;
-    const line=y+innerHeight*.67,band=160;
+    const line=y+innerHeight*.66,band=155;
     let last=-1;
     for(let i=0;i<words.length;i++){
-      const n=clamp((line-wordY[i])/band);
-      const quant=Math.round(n*18);
-      if(quant!==wordValues[i]){
-        wordValues[i]=quant;
-        const value=quant/18;
-        const el=words[i];
-        el.style.opacity=(.13+.87*value).toFixed(2);
-        el.style.transform=value<.99?'translateY(1px)':'none';
-        el.style.color=value>.5?'#44535a':'rgba(68,83,90,.2)';
-      }
-      if(n>.62)last=i;
+      const p=clamp((line-wordY[i])/band);
+      const el=words[i];
+      const opacity=.12+.88*p;
+      el.style.opacity=opacity.toFixed(3);
+      el.style.transform=p>=1?'none':'translateY('+((1-p)*2).toFixed(2)+'px)';
+      el.style.color=p>.5?'#44535a':'rgba(68,83,90,.2)';
+      if(p>.62)last=i;
     }
-    // Avoid permanently recoloring a previously active word.
     if(last>=0)words[last].style.color='#8d7182';
   }
 
@@ -381,6 +377,39 @@
     else pauseBloom();
   });
 
+  // The garden starts its growth on frame load. Try to begin Bloom immediately.
+  // Browsers can reject unmuted autoplay without a prior gesture; retry on the
+  // first real interaction with either the main page or the garden iframe.
+  let firstGestureUsed=false;
+  function startOnGesture(event){
+    if(firstGestureUsed||stoppedForFinale)return;
+    if(event?.target?.closest?.('#soundtrackControl'))return;
+    firstGestureUsed=true;
+    playBloom();
+  }
+  addEventListener('pointerdown',startOnGesture,{capture:true,passive:true});
+  addEventListener('keydown',e=>{
+    if(e.key==='Tab'||e.key==='Shift'||e.key==='Alt'||e.key==='Control')return;
+    startOnGesture(e);
+  },{capture:true});
+  function bindGardenGesture(){
+    try {
+      const garden=heroFrame?.contentDocument;
+      if(!garden)return;
+      garden.addEventListener('pointerdown',startOnGesture,{capture:true,passive:true,once:true});
+      garden.addEventListener('keydown',startOnGesture,{capture:true,once:true});
+    }catch(_){ /* The postMessage path below covers cross-origin frames. */ }
+  }
+  if(heroFrame){
+    heroFrame.addEventListener('load',()=>{
+      bindGardenGesture();
+      if(!stoppedForFinale && !started) playBloom();
+    });
+    try{if(heroFrame.contentDocument?.readyState==='complete')bindGardenGesture()}catch(_){}
+  }
+  // Also attempt when the initial garden is constructed, not after the 22 s gate.
+  if(!stoppedForFinale)playBloom();
+
   // Works even when hero.html is treated as a different local-file origin.
   window.addEventListener('message', event => {
     if (!event.data || event.data.type !== 'bloom-user-intent') return;
@@ -418,7 +447,7 @@
 })();
 
 
-// Eye-film finale: scroll freely in either direction; never trap gestures.
+// Blue-hour ending: a quick interruptible scroll, light reveal, still film and letter.
 (() => {
   'use strict';
   const footer=document.querySelector('#finale');
@@ -429,127 +458,239 @@
   if(!footer||!video||!after||!replay)return;
 
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let started=false, ended=false, sourceLoaded=false, watchdog=0, stallWatch=0;
-  const clearWatches=()=>{clearTimeout(watchdog);clearTimeout(stallWatch);};
   const source=video.querySelector('source[data-src]');
-
+  let started=false, entering=false, completed=false, sourceLoaded=false;
+  let videoUsable=false, watchdog=0, stallWatch=0, revealTimer=0;
+  let activeSnapCancel=null, mouseRaf=0;
+  const clearTimers=()=>{
+    clearTimeout(watchdog);clearTimeout(stallWatch);clearTimeout(revealTimer);
+  };
   function stopBloom(){
-    if(window.bloomSoundtrack?.stopForFinale){
-      window.bloomSoundtrack.stopForFinale();
-    }else{
-      const music=document.querySelector('#siteSoundtrack');
-      if(music){music.pause();music.volume=0;}
+    if(window.bloomSoundtrack?.stopForFinale)window.bloomSoundtrack.stopForFinale();
+    else {
+      const audio=document.querySelector('#siteSoundtrack');
+      if(audio){audio.pause();audio.volume=0;}
       const control=document.querySelector('#soundtrackControl');
       if(control)control.hidden=true;
     }
   }
-  function showMessage(){
-    if(ended)return;
-    ended=true;
-    clearWatches();
-    video.pause();
-    footer.classList.add('is-complete');
-    after.inert=false;
-    after.setAttribute('aria-hidden','false');
-    replay.hidden=!(Number.isFinite(video.duration) && video.duration>0);
-    audioHint.hidden=true;
-  }
-  function loadVideo(){
+  function loadFilm(){
     if(sourceLoaded)return;
     sourceLoaded=true;
     if(source){source.src=source.dataset.src;source.removeAttribute('data-src');}
     video.preload='auto';
     video.load();
   }
-  async function play(){
+  function reveal(){
+    if(completed)return;
+    completed=true;
+    entering=false;
+    clearTimers();
+    // Freeze the last real video frame beneath the blue endpaper.
+    video.pause();
+    footer.classList.remove('is-entering');
+    footer.classList.add('is-complete');
+    after.inert=false;
+    after.setAttribute('aria-hidden','false');
+    replay.hidden=!videoUsable;
+    audioHint.hidden=true;
+  }
+  function onFilmEnded(){
+    if(completed)return;
+    clearTimeout(watchdog);
     clearTimeout(stallWatch);
-    // Keep the already-armed load timeout active while play() is pending.
-    // Browser policies may reject audio autoplay. Play muted if necessary.
+    footer.classList.add('is-holding');
+    // Two unhurried seconds on the final frame before the footer appears.
+    clearTimeout(revealTimer);
+    revealTimer=setTimeout(reveal,2000);
+  }
+  function fail(){
+    clearTimers();
+    footer.classList.remove('is-holding');
+    reveal(); // No film means don't hide the birthday message.
+  }
+
+  // Never intercept navigation. A new wheel, touch or keyboard gesture cancels
+  // the automated scroll and the visitor can always navigate up again.
+  function easedSnap(){
+    if(reduced)return Promise.resolve(true);
+    const destination=Math.round(footer.getBoundingClientRect().top+scrollY);
+    const initial=scrollY;
+    const distance=destination-initial;
+    if(Math.abs(distance)<3)return Promise.resolve(true);
+    return new Promise(resolve=>{
+      const duration=590;
+      const began=performance.now();
+      let frame=0,finished=false;
+      function cleanup(){
+        removeEventListener('wheel',interrupt);
+        removeEventListener('touchstart',interrupt);
+        removeEventListener('pointerdown',interrupt);
+        removeEventListener('keydown',interrupt);
+      }
+      function finish(success){
+        if(finished)return;
+        finished=true;
+        cancelAnimationFrame(frame);
+        cleanup();
+        activeSnapCancel=null;
+        resolve(success);
+      }
+      function interrupt(){finish(false);}
+      activeSnapCancel=interrupt;
+      addEventListener('wheel',interrupt,{passive:true});
+      addEventListener('touchstart',interrupt,{passive:true});
+      addEventListener('pointerdown',interrupt,{passive:true});
+      addEventListener('keydown',interrupt);
+      const root=document.documentElement;
+      const previous=root.style.scrollBehavior;
+      root.style.scrollBehavior='auto';
+      function step(now){
+        if(finished)return;
+        const p=Math.min(1,(now-began)/duration);
+        // Swift yet graceful: soft start and gentle arrival.
+        const eased=p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+        scrollTo(0,initial+distance*eased);
+        if(p<1)frame=requestAnimationFrame(step);
+        else finish(true);
+      }
+      frame=requestAnimationFrame(step);
+      // Restore inline scroll behavior after animation in all cases.
+      const originalFinish=finish;
+      finish=function(success){
+        root.style.scrollBehavior=previous;
+        originalFinish(success);
+      };
+    });
+  }
+
+  async function runFilm(){
+    if(completed)return;
     try{
       video.muted=false;
       await video.play();
     }catch(_){
+      if(completed)return;
       try{
         video.muted=true;
         await video.play();
         audioHint.hidden=false;
-      }catch(_2){
-        showMessage();
-        return;
-      }
+      }catch(_2){fail();return;}
     }
-    // Once playback advances, the waiting/stall events guard buffering.
   }
-  function alignFinale(){
-    // Set scroll-behavior temporarily to auto, even if the site uses smooth scroll.
-    const root=document.documentElement;
-    const original=root.style.scrollBehavior;
-    root.style.scrollBehavior='auto';
-    window.scrollTo(0,Math.round(footer.getBoundingClientRect().top+scrollY));
-    root.style.scrollBehavior=original;
-  }
-  function start(isReplay=false){
-    if(started&&!isReplay)return;
-    started=true;
-    ended=false;
-    footer.classList.remove('is-complete');
+
+  async function begin(replaying=false){
+    if((started||entering)&&!replaying)return;
+    if(replaying && activeSnapCancel)activeSnapCancel();
+    entering=true;
+    completed=false;
+    clearTimers();
+    footer.classList.remove('is-complete','is-holding','is-entering','is-playing');
     after.inert=true;
     after.setAttribute('aria-hidden','true');
     replay.hidden=true;
     audioHint.hidden=true;
+    loadFilm();
+
+    if(!replaying){
+      const snapped=await easedSnap();
+      if(!snapped){
+        entering=false;
+        return;
+      }
+    }
+    entering=false;
+    started=true;
     stopBloom();
-    loadVideo();
-    alignFinale();
-    if(reduced&&!isReplay){showMessage();return;}
+    if(reduced&&!replaying){reveal();return;}
     try{video.pause();video.currentTime=0;}catch(_){}
-    // Watchdog is armed before awaiting play; media errors never trap navigation.
-    watchdog=setTimeout(()=>{if(!ended&&video.currentTime<.2)showMessage();},11000);
-    play();
+    footer.classList.add('is-entering');
+    // The black-to-video reveal precedes the first moving frame.
+    await new Promise(r=>setTimeout(r,reduced?0:450));
+    if(completed)return;
+    footer.classList.add('is-playing');
+    watchdog=setTimeout(()=>{
+      if(!completed && video.currentTime<.16)fail();
+    },11000);
+    runFilm();
   }
 
-  video.addEventListener('loadedmetadata',()=>{if(Number.isFinite(video.duration)&&video.duration>0)footer.classList.add('has-video');});
-  video.addEventListener('ended',showMessage);
-  video.addEventListener('error',showMessage);
-  source?.addEventListener('error',()=>{if(started)showMessage()});
+  video.addEventListener('loadedmetadata',()=>{
+    if(Number.isFinite(video.duration)&&video.duration>0){
+      videoUsable=true;
+      footer.classList.add('has-video');
+    }
+  });
+  video.addEventListener('ended',onFilmEnded);
+  video.addEventListener('error',fail);
+  source?.addEventListener('error',()=>{if(started)fail()});
   video.addEventListener('waiting',()=>{
+    if(!started||completed)return;
     clearTimeout(stallWatch);
-    if(started&&!ended)stallWatch=setTimeout(showMessage,13000);
+    stallWatch=setTimeout(fail,15000);
   });
   video.addEventListener('playing',()=>clearTimeout(stallWatch));
-  video.addEventListener('timeupdate',()=>clearTimeout(stallWatch));
-  replay.addEventListener('click',e=>{e.preventDefault();start(true)});
+  video.addEventListener('timeupdate',()=>{
+    if(video.currentTime>.2)clearTimeout(watchdog);
+    clearTimeout(stallWatch);
+  });
+  replay.addEventListener('click',e=>{
+    e.preventDefault();begin(true);
+  });
   audioHint.addEventListener('click',async e=>{
     e.preventDefault();
-    try{video.muted=false;await video.play();audioHint.hidden=true}
-    catch(_){video.muted=true}
+    try{video.muted=false;await video.play();audioHint.hidden=true;}
+    catch(_){video.muted=true;}
   });
-
+  // Start the download one viewport before arrival, not on the first page load.
   if('IntersectionObserver' in window){
-    const io=new IntersectionObserver(entries=>{
-      if(!started&&entries.some(e=>e.isIntersecting)){
-        io.disconnect();
-        start();
+    const near=new IntersectionObserver(entries=>{
+      if(entries.some(e=>e.isIntersecting)){loadFilm();near.disconnect();}
+    },{rootMargin:'110% 0px'});
+    near.observe(footer);
+  }
+  let lastY=scrollY, wasIntersecting=false;
+  const onView=(entries)=>{
+    const showing=entries.some(e=>e.isIntersecting);
+    if(showing && !wasIntersecting && !started && !entering){
+      begin();
+    }
+    wasIntersecting=showing;
+    if(started && !completed && !footer.classList.contains('is-holding')){
+      if(!showing && !video.paused)video.pause();
+      if(showing && video.paused && video.currentTime>.05 && video.currentTime<video.duration-.04){
+        video.play().catch(()=>{});
       }
-    },{threshold:.08});
+    }
+    lastY=scrollY;
+  };
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver(onView,{threshold:.07});
     io.observe(footer);
   }else{
     addEventListener('scroll',()=>{
-      if(!started&&footer.getBoundingClientRect().top<innerHeight*.9)start();
+      const showing=footer.getBoundingClientRect().top<innerHeight*.93;
+      if(showing && !wasIntersecting && !started && !entering)begin();
+      wasIntersecting=showing;
     },{passive:true});
   }
 
-  // Going back to a previous chapter must always be possible.
-  // Pause the film offscreen; resume if the viewer returns before it has finished.
-  if('IntersectionObserver' in window){
-    const visibility=new IntersectionObserver(entries=>{
-      for(const entry of entries){
-        if(!started||ended)continue;
-        if(!entry.isIntersecting&&!video.paused)video.pause();
-        else if(entry.isIntersecting&&video.paused&&video.currentTime>0){
-          video.play().catch(()=>{});
-        }
-      }
-    },{threshold:.01});
-    visibility.observe(footer);
-  }
+  // A small pool of blue light responds to the visitor's mouse. No looping
+  // animation or expensive filters; just one CSS-variable update per frame.
+  after.addEventListener('pointermove',e=>{
+    if(!completed || e.pointerType==='touch')return;
+    const rect=after.getBoundingClientRect();
+    const x=((e.clientX-rect.left)/rect.width*100).toFixed(1)+'%';
+    const y=((e.clientY-rect.top)/rect.height*100).toFixed(1)+'%';
+    if(mouseRaf)cancelAnimationFrame(mouseRaf);
+    mouseRaf=requestAnimationFrame(()=>{
+      after.style.setProperty('--mx',x);
+      after.style.setProperty('--my',y);
+      mouseRaf=0;
+    });
+  },{passive:true});
+  after.addEventListener('pointerleave',()=>{
+    after.style.removeProperty('--mx');
+    after.style.removeProperty('--my');
+  });
 })();

@@ -220,6 +220,7 @@
   let fadeFrame = 0;
   let started = false;
   const targetVolume = 0.24;
+  let stoppedForFinale = false;
 
   audio.volume = 0;
 
@@ -256,6 +257,7 @@
   }
 
   async function playBloom() {
+    if (stoppedForFinale) return false;
     if (!audio.paused) return true;
     try {
       await audio.play();
@@ -297,13 +299,174 @@
   audio.addEventListener('play', () => setUi('playing'));
   audio.addEventListener('pause', () => { if (!audio.error) setUi('paused'); });
 
+  function stopForFinale() {
+    stoppedForFinale = true;
+    cancelAnimationFrame(fadeFrame);
+    audio.volume = 0;
+    audio.pause();
+    setUi('paused');
+    control.hidden = true;
+    control.disabled = true;
+  }
+
   window.bloomSoundtrack = {
     audio,
     play: playBloom,
     pause: pauseBloom,
     fadeTo,
+    stopForFinale,
     get started(){ return started; }
   };
 
   setUi('paused');
+})();
+
+
+// Cinematic eyes ending. The story snaps to this final full-screen film,
+// Bloom stops, and the original footer text appears only after the film ends.
+(() => {
+  'use strict';
+  const footer = document.querySelector('#finale');
+  const film = document.querySelector('#eyesFinaleVideo');
+  const after = document.querySelector('#finaleAfter');
+  const replay = document.querySelector('#eyesReplay');
+  const enableAudio = document.querySelector('#eyesEnableAudio');
+  if (!footer || !film || !after || !replay) return;
+
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let activated = false;
+  let completed = false;
+  let running = false;
+  let videoFailed = false;
+  let checkTimer = null;
+
+  // Avoid queuing all 17 seconds of frames on initial page load.
+  film.pause();
+  film.setAttribute('preload','metadata');
+
+  const keys = new Set(['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' ','Spacebar']);
+  const holdWheel = e => { if(running && e.cancelable) e.preventDefault(); };
+  const holdTouch = e => { if(running && e.cancelable) e.preventDefault(); };
+  const holdKeys = e => {
+    if(!running) return;
+    if(e.key === 'Escape') { complete(); return; }
+    if(keys.has(e.key) && e.cancelable) e.preventDefault();
+  };
+  const holdPosition = () => {
+    if(!running) return;
+    const top = footer.getBoundingClientRect().top + scrollY;
+    if(Math.abs(top-scrollY)>6) scrollTo({top,behavior:'auto'});
+  };
+  function guardScroll() {
+    running = true;
+    addEventListener('wheel',holdWheel,{passive:false});
+    addEventListener('touchmove',holdTouch,{passive:false});
+    addEventListener('keydown',holdKeys);
+    addEventListener('scroll',holdPosition,{passive:true});
+  }
+  function releaseScroll() {
+    running = false;
+    removeEventListener('wheel',holdWheel);
+    removeEventListener('touchmove',holdTouch);
+    removeEventListener('keydown',holdKeys);
+    removeEventListener('scroll',holdPosition);
+  }
+  function stopBloom() {
+    if(window.bloomSoundtrack && window.bloomSoundtrack.stopForFinale) {
+      window.bloomSoundtrack.stopForFinale();
+    } else {
+      const song = document.querySelector('#siteSoundtrack');
+      if(song) { song.pause(); song.volume=0; }
+      const musicControl = document.querySelector('#soundtrackControl');
+      if(musicControl) musicControl.hidden=true;
+    }
+  }
+  function snap() {
+    const top=footer.getBoundingClientRect().top + scrollY;
+    scrollTo({top:Math.round(top),behavior:'auto'});
+  }
+  function concealFooter() {
+    after.setAttribute('aria-hidden','true');
+    after.inert = true;
+    replay.hidden = true;
+    enableAudio.hidden = true;
+    footer.classList.remove('is-complete');
+  }
+  function complete() {
+    if(completed) return;
+    completed = true;
+    clearTimeout(checkTimer);
+    releaseScroll();
+    film.pause();
+    enableAudio.hidden = true;
+    footer.classList.add('is-complete');
+    after.inert = false;
+    after.setAttribute('aria-hidden','false');
+    replay.hidden = videoFailed; // Do not offer replay when the source is missing.
+  }
+  function fail() {
+    videoFailed = true;
+    if(activated) complete();
+  }
+  async function playClip() {
+    try {
+      film.muted = false;
+      await film.play();
+    } catch(e) {
+      // Some browsers disallow unmuted playback from a scroll event.
+      // A muted fallback ensures that the film can still play automatically.
+      try {
+        film.muted = true;
+        await film.play();
+        enableAudio.hidden = false;
+      } catch(_) {
+        fail();
+      }
+    }
+  }
+  async function begin(replaying=false) {
+    if(activated && !replaying) return;
+    activated = true;
+    completed = false;
+    videoFailed = false;
+    concealFooter();
+    stopBloom();
+    snap();
+    footer.classList.add('is-active');
+    if(reduced && !replaying) { complete(); return; }
+    try { film.pause(); film.currentTime=0; } catch(_) {}
+    guardScroll();
+    await playClip();
+    // Graceful fallback if a missing/stalled video never starts decoding.
+    clearTimeout(checkTimer);
+    if(!completed) checkTimer=setTimeout(()=>{
+      if(film.readyState===0 || (film.currentTime<.05 && film.paused)) fail();
+    },10000);
+  }
+
+  film.addEventListener('ended',complete);
+  film.addEventListener('error',fail);
+  film.querySelector('source')?.addEventListener('error',fail);
+  replay.addEventListener('click',e => {e.preventDefault();begin(true);});
+  enableAudio.addEventListener('click',async e => {
+    e.preventDefault();
+    try { film.muted=false; await film.play(); enableAudio.hidden=true; }
+    catch(_) { film.muted=true; }
+  });
+
+  // A small intersection is enough: immediately align the film with the viewport.
+  // The event fires once as the visitor scrolls down from the previous section.
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver(entries => {
+      if(!activated && entries.some(e=>e.isIntersecting)){
+        io.disconnect();
+        begin();
+      }
+    },{threshold:.12});
+    io.observe(footer);
+  } else {
+    addEventListener('scroll',()=>{
+      if(!activated && footer.getBoundingClientRect().top<innerHeight*.9)begin();
+    },{passive:true});
+  }
 })();

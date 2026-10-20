@@ -592,12 +592,10 @@
     audioHint.hidden=true;
     loadFilm();
 
-    if(!replaying){
-      const snapped=await easedSnap();
-      if(!snapped){
-        entering=false;
-        return;
-      }
+    const snapped=await easedSnap();
+    if(!snapped){
+      entering=false;
+      return;
     }
     entering=false;
     started=true;
@@ -680,17 +678,17 @@
   after.addEventListener('pointermove',e=>{
     if(!completed || e.pointerType==='touch')return;
     const rect=after.getBoundingClientRect();
-    const x=((e.clientX-rect.left)/rect.width*100).toFixed(1)+'%';
-    const y=((e.clientY-rect.top)/rect.height*100).toFixed(1)+'%';
+    const x=(e.clientX-rect.left).toFixed(1)+'px';
+    const y=(e.clientY-rect.top).toFixed(1)+'px';
     if(mouseRaf)cancelAnimationFrame(mouseRaf);
     mouseRaf=requestAnimationFrame(()=>{
-      after.style.setProperty('--mx',x);
-      after.style.setProperty('--my',y);
+      after.style.setProperty('--glow-x',x);
+      after.style.setProperty('--glow-y',y);
       mouseRaf=0;
     });
   },{passive:true});
   after.addEventListener('pointerleave',()=>{
-    after.style.removeProperty('--mx');
-    after.style.removeProperty('--my');
+    after.style.removeProperty('--glow-x');
+    after.style.removeProperty('--glow-y');
   });
 })();

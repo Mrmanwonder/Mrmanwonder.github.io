@@ -106,6 +106,33 @@
   // The hero's own animation reaches its fully-bloomed rest state at 22 seconds.
   heroFrame.addEventListener('load', beginBloomClock, {once:true});
 
+  // Pause continuous garden CSS animation work while its iframe is out of view.
+  // The opening bloom is never paused while the viewer is watching it.
+  if ('IntersectionObserver' in window) {
+    let gardenDoc = null;
+    function installGardenPause() {
+      try {
+        const doc = heroFrame.contentDocument;
+        if (!doc || gardenDoc === doc) return;
+        gardenDoc = doc;
+        const pauseStyle = doc.createElement('style');
+        pauseStyle.textContent = '.garden-perf-paused *, .garden-perf-paused *::before, .garden-perf-paused *::after { animation-play-state: paused !important; }';
+        doc.head.appendChild(pauseStyle);
+      } catch (_) { /* A cross-origin hero still renders normally. */ }
+    }
+    const watchGarden = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        installGardenPause();
+        try {
+          const doc = heroFrame.contentDocument;
+          if (doc) doc.documentElement.classList.toggle('garden-perf-paused', !entry.isIntersecting);
+        } catch (_) {}
+      }
+    }, {threshold: .01});
+    heroFrame.addEventListener('load', installGardenPause);
+    watchGarden.observe(heroFrame);
+  }
+
   // Cached same-origin iframe may already be complete before this deferred script attaches.
   try {
     if (heroFrame.contentDocument?.readyState === 'complete') {

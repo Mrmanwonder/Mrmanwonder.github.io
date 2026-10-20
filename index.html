@@ -8,7 +8,7 @@
   <title>For Kashvi — Where the Sea Keeps Us</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -115,19 +115,28 @@
       </div>
     </section>
 
-    <section class="finale" aria-labelledby="finaleTitle">
-      <div class="finale__wash finale__wash--rose" aria-hidden="true"></div>
-      <div class="finale__wash finale__wash--mint" aria-hidden="true"></div>
-      <div class="finale__inner reveal">
-        <p class="eyebrow">one last thing</p>
-        <h2 id="finaleTitle">I’d still choose you.</h2>
-        <p class="finale__sub">in every version of this life.</p>
-        <p class="finale__birthday">Happy Birthday, <span>Kashvi</span>.</p>
-        <p class="finale__message">My love, I hope this year gives you back some of the softness, joy, and light you bring into my world.</p>
-        <button class="secret" id="secretButton" type="button" aria-label="Open a hidden note">✿</button>
-        <p class="secret-message" id="secretMessage">p.s. my favourite place is still anywhere with you. ♡</p>
+    <footer class="finale finale--cinematic" id="finale" aria-labelledby="finaleTitle">
+      <div class="finale__screen">
+        <video class="finale__film" id="eyesFinaleVideo" playsinline preload="metadata" aria-label="A golden light slowly reveals Kashvi's eyes">
+          <source src="Eyes.mp4" type="video/mp4" />
+        </video>
+        <div class="finale__after" id="finaleAfter" aria-hidden="true" inert>
+          <div class="finale__wash finale__wash--rose" aria-hidden="true"></div>
+          <div class="finale__wash finale__wash--mint" aria-hidden="true"></div>
+          <div class="finale__inner">
+            <p class="eyebrow">one last thing</p>
+            <h2 id="finaleTitle">I’d still choose you.</h2>
+            <p class="finale__sub">in every version of this life.</p>
+            <p class="finale__birthday">Happy Birthday, <span>Kashvi</span>.</p>
+            <p class="finale__message">My love, I hope this year gives you back some of the softness, joy, and light you bring into my world.</p>
+            <button class="secret" id="secretButton" type="button" aria-label="Open a hidden note">✿</button>
+            <p class="secret-message" id="secretMessage">p.s. my favourite place is still anywhere with you. ♡</p>
+          </div>
+        </div>
+        <button class="finale__replay" id="eyesReplay" type="button" aria-label="Replay the eye film" title="Replay" hidden><span aria-hidden="true">↻</span></button>
+        <button class="finale__enable-audio" id="eyesEnableAudio" type="button" aria-label="Enable sound for the eye film" hidden>tap for sound</button>
       </div>
-    </section>
+    </footer>
   </main>
 
 

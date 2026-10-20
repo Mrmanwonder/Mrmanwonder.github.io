@@ -480,6 +480,7 @@
     play();
   }
 
+  video.addEventListener('loadedmetadata',()=>{if(Number.isFinite(video.duration)&&video.duration>0)footer.classList.add('has-video');});
   video.addEventListener('ended',showMessage);
   video.addEventListener('error',showMessage);
   source?.addEventListener('error',()=>{if(started)showMessage()});

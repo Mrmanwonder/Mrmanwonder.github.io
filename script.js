@@ -436,16 +436,24 @@
     if(reduced && !replaying) { complete(); return; }
     try { film.pause(); film.currentTime=0; } catch(_) {}
     guardScroll();
-    await playClip();
-    // Graceful fallback if a missing/stalled video never starts decoding.
+    // Arm the watchdog before awaiting play(): a pending media promise can otherwise
+    // leave the page locked on an unreliable connection.
     clearTimeout(checkTimer);
-    if(!completed) checkTimer=setTimeout(()=>{
-      if(film.readyState===0 || (film.currentTime<.05 && film.paused)) fail();
-    },10000);
+    checkTimer=setTimeout(()=>{
+      if(!completed && film.currentTime<.2) fail();
+    },12000);
+    await playClip();
   }
 
   film.addEventListener('ended',complete);
   film.addEventListener('error',fail);
+  let stallTimer=null;
+  film.addEventListener('waiting',()=>{
+    clearTimeout(stallTimer);
+    if(activated && !completed) stallTimer=setTimeout(()=>{ if(!completed) fail(); },18000);
+  });
+  film.addEventListener('playing',()=>clearTimeout(stallTimer));
+  film.addEventListener('timeupdate',()=>{ if(!film.paused) clearTimeout(stallTimer); });
   film.querySelector('source')?.addEventListener('error',fail);
   replay.addEventListener('click',e => {e.preventDefault();begin(true);});
   enableAudio.addEventListener('click',async e => {

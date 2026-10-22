@@ -1186,3 +1186,10 @@ main{width:100%;min-width:0}
 @media(prefers-reduced-motion:reduce){.intro-gate--interactive .intro-gate__begin{transition:none}
 }
 
+
+
+/* Whole-image decode guard for the scroll film's static fallback frame. */
+.media-pending .only-us-scroll__still:not([data-ready="true"]){opacity:0}
+.media-pending .only-us-scroll__still[data-ready="true"]{opacity:1}
+.media-pending .only-us-scroll__media.is-frame-ready .only-us-scroll__still{opacity:0}
+.only-us-scroll__media{background:#f6efe7}

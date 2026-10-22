@@ -60,6 +60,8 @@ img{display:block;max-width:100%}
 .letter-paper__eyebrow{position:relative;margin:0 0 14px;font-size:10px;font-weight:600;letter-spacing:.25em;text-transform:uppercase;text-align:center;color:rgba(68,83,90,.46)}
 .letter-paper h2{position:relative;margin:0 0 18px;font:400 clamp(42px,5vw,64px)/1 var(--serif);color:#46555c}
 .love-letter{position:relative;margin:0;font:400 clamp(38px,4.1vw,58px)/1.17 var(--serif);letter-spacing:-.035em;color:#46555c;text-wrap:pretty}
+.love-letter > p{margin:0 0 1.05em;min-width:0}
+.love-letter > p:last-child{margin-bottom:0}
 .love-letter .word{display:inline-block;opacity:.14;transform:translateY(2px);will-change:opacity,transform;color}
 .letter-paper__signoff{position:relative;display:flex;justify-content:flex-end;align-items:center;gap:12px;margin-top:34px}
 .letter-paper__signoff p{margin:0;font:italic 400 clamp(24px,2.4vw,34px)/1 var(--serif);color:#7c6b72}

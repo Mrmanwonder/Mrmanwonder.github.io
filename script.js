@@ -107,6 +107,13 @@
       button.hidden=false;button.disabled=false;
     }
   }
+  if('IntersectionObserver' in window){
+    const gardenView=new IntersectionObserver(entries=>{
+      const visible=entries.some(e=>e.isIntersecting);
+      heroFrame.contentWindow?.postMessage({type:'garden-visibility',visible},location.origin);
+    },{threshold:.01});
+    gardenView.observe(heroFrame);
+  }
   heroFrame.addEventListener('load',connectBridge);
   try{if(heroFrame.contentDocument?.readyState==='complete')queueMicrotask(connectBridge)}catch(_){}
   heroFrame.addEventListener('error',()=>{

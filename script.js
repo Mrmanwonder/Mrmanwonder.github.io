@@ -337,39 +337,6 @@
     else pauseBloom();
   });
 
-  // The garden starts its growth on frame load. Try to begin Bloom immediately.
-  // Browsers can reject unmuted autoplay without a prior gesture; retry on the
-  // first real interaction with either the main page or the garden iframe.
-  let firstGestureUsed=false;
-  function startOnGesture(event){
-    if(firstGestureUsed||stoppedForFinale)return;
-    if(event?.target?.closest?.('#soundtrackControl'))return;
-    firstGestureUsed=true;
-    playBloom();
-  }
-  addEventListener('pointerdown',startOnGesture,{capture:true,passive:true});
-  addEventListener('keydown',e=>{
-    if(e.key==='Tab'||e.key==='Shift'||e.key==='Alt'||e.key==='Control')return;
-    startOnGesture(e);
-  },{capture:true});
-  function bindGardenGesture(){
-    try {
-      const garden=heroFrame?.contentDocument;
-      if(!garden)return;
-      garden.addEventListener('pointerdown',startOnGesture,{capture:true,passive:true,once:true});
-      garden.addEventListener('keydown',startOnGesture,{capture:true,once:true});
-    }catch(_){ /* The postMessage path below covers cross-origin frames. */ }
-  }
-  if(heroFrame){
-    heroFrame.addEventListener('load',()=>{
-      bindGardenGesture();
-      if(!stoppedForFinale && !started) playBloom();
-    });
-    try{if(heroFrame.contentDocument?.readyState==='complete')bindGardenGesture()}catch(_){}
-  }
-  // Also attempt when the initial garden is constructed, not after the 22 s gate.
-  if(!stoppedForFinale)playBloom();
-
   // Works even when hero.html is treated as a different local-file origin.
   window.addEventListener('message', event => {
     if (!event.data || event.data.type !== 'bloom-user-intent') return;

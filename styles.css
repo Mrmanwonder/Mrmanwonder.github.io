@@ -1483,3 +1483,36 @@ main{width:100%;min-width:0}
 @media(prefers-reduced-motion:reduce){
   .finale--blue-hour .finale__cursor-glow{transition:none;will-change:auto}
 }
+
+
+/* A quiet invitation after the painted sprites are genuinely ready. */
+.intro-gate--interactive{pointer-events:none}
+.intro-gate--interactive .intro-gate__begin{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  margin-top:12px;
+  padding:11px 18px;
+  color:#657061;
+  background:rgba(255,253,248,.80);
+  border:1px solid rgba(115,133,104,.24);
+  border-radius:999px;
+  box-shadow:0 8px 26px rgba(91,106,83,.07);
+  font:italic 400 19px/1.1 "Instrument Serif",Georgia,serif;
+  cursor:pointer;
+  pointer-events:auto;
+  -webkit-backdrop-filter:blur(8px);
+  backdrop-filter:blur(8px);
+  transition:background .25s ease,transform .25s ease,box-shadow .25s ease;
+}
+.intro-gate--interactive .intro-gate__begin span{font:400 13px/1 system-ui,sans-serif}
+.intro-gate--interactive .intro-gate__begin:hover{
+  background:#fffcf7;
+  box-shadow:0 10px 30px rgba(91,106,83,.11);
+  transform:translateY(-1px);
+}
+.intro-gate--interactive .intro-gate__begin:focus-visible{outline:2px solid #9faf90;outline-offset:4px}
+.intro-gate--interactive .intro-gate__begin[hidden]{display:none!important}
+@media(max-width:700px){.intro-gate--interactive .intro-gate__begin{font-size:18px;padding:10px 16px}}
+@media(prefers-reduced-motion:reduce){.intro-gate--interactive .intro-gate__begin{transition:none}}

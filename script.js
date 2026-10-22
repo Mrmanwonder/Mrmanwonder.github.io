@@ -313,6 +313,16 @@
   addEventListener('load',()=>{measure();request();},{once:true});
   if(document.fonts?.ready)document.fonts.ready.then(()=>{measure();request()});
   secret?.addEventListener('click',()=>secretMessage?.classList.toggle('is-visible'));
+  // When the opening animation ends, begin preparing the bigger crowd film
+  // during idle reading time; skip this background transfer on data saver.
+  addEventListener('birthday-garden-ready',()=>{
+    if(navigator.connection?.saveData)return;
+    setTimeout(()=>{
+      if('requestIdleCallback' in window){
+        requestIdleCallback(loadScrub,{timeout:6000});
+      }else loadScrub();
+    },6500);
+  },{once:true});
   measure();
   request();
 })();

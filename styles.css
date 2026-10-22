@@ -970,12 +970,12 @@ main{width:100%;min-width:0}
   background:#0d0b0a!important;
   width:100%;max-width:100%;min-width:0;
   position:relative;isolation:isolate;
-  margin-top:-1px;
+  margin-top:0;
   border:0;
   overflow:clip;
 }
 .finale--blue-hour::before{
-  content:"";position:absolute;left:0;right:0;top:-2px;height:3px;
+  content:"";position:absolute;left:0;right:0;top:0;height:3px;
   z-index:2;background:#0d0b0a;pointer-events:none;
 }
 .finale--blue-hour .finale__screen{

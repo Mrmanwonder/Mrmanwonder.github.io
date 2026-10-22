@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-labelledby="t d">
+<title id="t">For Kashvi — a birthday story</title><desc id="d">A quiet dawn garden of lilies and daisies, with a birthday dedication.</desc>
+<defs>
+<linearGradient id="dawn" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f9f7f2"/><stop offset=".5" stop-color="#f4f1ec"/><stop offset="1" stop-color="#e7edf1"/></linearGradient>
+<radialGradient id="sun"><stop stop-color="#fce8ce" stop-opacity=".75"/><stop offset="1" stop-color="#fce8ce" stop-opacity="0"/></radialGradient>
+<linearGradient id="stem" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#7d9b84"/><stop offset="1" stop-color="#a4b7a0"/></linearGradient>
+<linearGradient id="lily" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffdfa"/><stop offset=".66" stop-color="#f6e5e1"/><stop offset="1" stop-color="#d7bdc5"/></linearGradient>
+<linearGradient id="petal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fffdf8"/><stop offset="1" stop-color="#e4e4dc"/></linearGradient>
+<filter id="haze"><feGaussianBlur stdDeviation="45"/></filter>
+<g id="flower"><g fill="url(#petal)" stroke="#d8d8ce" stroke-width="1">
+<ellipse cx="0" cy="-31" rx="14" ry="29"/><ellipse cx="0" cy="-31" rx="14" ry="29" transform="rotate(45)"/><ellipse cx="0" cy="-31" rx="14" ry="29" transform="rotate(90)"/><ellipse cx="0" cy="-31" rx="14" ry="29" transform="rotate(135)"/><ellipse cx="0" cy="-31" rx="14" ry="29" transform="rotate(180)"/><ellipse cx="0" cy="-31" rx="14" ry="29" transform="rotate(225)"/><ellipse cx="0" cy="-31" rx="14" ry="29" transform="rotate(270)"/><ellipse cx="0" cy="-31" rx="14" ry="29" transform="rotate(315)"/></g><circle r="17" fill="#e3ca83"/><circle r="10" fill="#cba951" opacity=".7"/></g>
+<g id="lilyflower" fill="url(#lily)" stroke="#d6c3c8" stroke-width="1.3">
+<path d="M0 0 C-58 -16 -72 -70 -40 -78 C-13 -79 -5 -35 0 0Z"/>
+<path d="M0 0 C-36 -51 -17 -101 9 -93 C29 -81 15 -30 0 0Z"/>
+<path d="M0 0 C17 -75 74 -92 78 -60 C80 -30 37 -6 0 0Z"/>
+<path d="M0 0 C36 -34 89 -25 80 6 C69 33 29 20 0 0Z"/>
+<path d="M0 0 C15 45 -31 76 -54 46 C-69 23 -33 2 0 0Z"/>
+<circle r="8" fill="#c79b47" stroke="none"/></g>
+</defs>
+<rect width="1200" height="630" fill="url(#dawn)"/>
+<ellipse cx="610" cy="205" rx="470" ry="300" fill="url(#sun)"/>
+<g opacity=".45" filter="url(#haze)"><ellipse cx="108" cy="530" rx="210" ry="170" fill="#cbdace"/><ellipse cx="1110" cy="485" rx="220" ry="190" fill="#d3dce7"/></g>
+<g fill="none" stroke="url(#stem)" stroke-width="4" stroke-linecap="round">
+<path d="M20 658Q60 460 160 320"/><path d="M110 670Q105 520 280 405"/>
+<path d="M260 680Q253 535 223 282"/><path d="M1201 657Q1085 480 1070 304"/>
+<path d="M1129 664Q1095 480 938 392"/><path d="M978 665Q990 490 991 190"/>
+</g>
+<g fill="#8fa994" opacity=".92">
+<path d="M54 526Q-22 464 12 442Q79 447 54 526Z"/><path d="M107 462Q183 386 203 418Q193 455 107 462Z"/>
+<path d="M202 551Q150 488 177 476Q229 474 202 551Z"/><path d="M246 422Q322 355 345 381Q326 424 246 422Z"/>
+<path d="M1120 538Q1178 468 1196 488Q1191 518 1120 538Z"/><path d="M1067 483Q997 409 974 438Q1001 486 1067 483Z"/>
+<path d="M985 463Q918 399 891 427Q917 465 985 463Z"/><path d="M1000 331Q1059 254 1075 286Q1051 317 1000 331Z"/>
+</g>
+<g><use href="#lilyflower" transform="translate(161 322) rotate(-12) scale(1.12)"/><use href="#lilyflower" transform="translate(1059 313) rotate(19) scale(1.01)"/>
+<use href="#flower" transform="translate(273 406) rotate(12) scale(.79)"/><use href="#flower" transform="translate(930 389) rotate(-10) scale(.83)"/>
+<use href="#flower" transform="translate(220 276) scale(.6)"/><use href="#flower" transform="translate(985 190) scale(.52)"/></g>
+<g text-anchor="middle">
+<text x="600" y="246" font-family="Georgia, 'Times New Roman', serif" font-size="23" letter-spacing="9" fill="#7e8d91">A LITTLE SOMETHING FOR</text>
+<text x="600" y="345" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="97" fill="#496174">Kashvi</text>
+<text x="600" y="404" font-family="Georgia, 'Times New Roman', serif" font-size="27" font-style="italic" fill="#9a8190">a birthday story, made with love</text>
+</g>
+<path d="M497 453H561M639 453H703" stroke="#a5b1ae" stroke-width="1.4"/><text x="601" y="460" text-anchor="middle" font-family="Georgia,serif" font-size="25" fill="#b6a1aa">✿</text>
+</svg>

@@ -1,161 +1,121 @@
-
-// V23 — opening garden gate.
-// Keep the viewer on the hero until its 22-second bloom is complete and the page is loaded.
+// Exact garden gating. Do not infer animation progress from iframe load time.
 (() => {
   'use strict';
+  const root=document.documentElement;
+  const heroFrame=document.querySelector('.exact-hero-frame');
+  if(!root || !heroFrame){root?.classList.remove('intro-locked');return}
+  if('scrollRestoration' in history)history.scrollRestoration='manual';
+  scrollTo(0,0);
 
-  const root = document.documentElement;
-  const heroFrame = document.querySelector('.exact-hero-frame');
-  if (!root || !heroFrame) {
-    root?.classList.remove('intro-locked');
-    return;
-  }
-
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const BLOOM_MS = reduced ? 650 : 22500;
-  let bloomStarted = false;
-  let bloomFinished = false;
-  let pageLoaded = true; // Hero iframe load starts the clock; other pages are lazy.
-  let startTime = 0;
-  let animationFrame = 0;
-  let unlocked = false;
-
-  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-  scrollTo(0, 0);
-
-  const gate = document.createElement('div');
-  gate.className = 'intro-gate';
-  gate.id = 'introGate';
-  gate.setAttribute('role', 'status');
-  gate.setAttribute('aria-live', 'polite');
-  gate.innerHTML = `
-    <strong id="introGateLabel">the garden is waking up…</strong>
-    <span class="intro-gate__track" aria-hidden="true"><i id="introGateFill"></i></span>
-  `;
+  let ready=false, begun=false, finished=false, unlocked=false, broken=false;
+  const gate=document.createElement('div');
+  gate.className='intro-gate intro-gate--interactive';
+  gate.id='introGate';
+  gate.setAttribute('aria-live','polite');
+  gate.innerHTML='<strong id="introGateLabel">the garden is waking up…</strong><span class="intro-gate__track" aria-hidden="true"><i id="introGateFill"></i></span><button class="intro-gate__begin" id="gardenBegin" type="button" hidden disabled>tap to begin <span aria-hidden="true">↗</span></button>';
   document.body.appendChild(gate);
+  const label=gate.querySelector('#introGateLabel');
+  const fill=gate.querySelector('#introGateFill');
+  const button=gate.querySelector('#gardenBegin');
 
-  const label = gate.querySelector('#introGateLabel');
-  const fill = gate.querySelector('#introGateFill');
-
-  const blockedKeys = new Set([
-    'ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' ','Spacebar'
-  ]);
-
-  const blockWheel = event => {
-    if (!unlocked) event.preventDefault();
-  };
-  const blockTouch = event => {
-    if (!unlocked) event.preventDefault();
-  };
-  const blockKeys = event => {
-    if (!unlocked && blockedKeys.has(event.key)) event.preventDefault();
-  };
-  const holdTop = () => {
-    if (!unlocked && scrollY !== 0) scrollTo(0, 0);
-  };
-
-  addEventListener('wheel', blockWheel, {passive:false});
-  addEventListener('touchmove', blockTouch, {passive:false});
-  addEventListener('keydown', blockKeys);
-  addEventListener('scroll', holdTop, {passive:true});
-
-  function cleanupGuards(){
-    removeEventListener('wheel', blockWheel);
-    removeEventListener('touchmove', blockTouch);
-    removeEventListener('keydown', blockKeys);
-    removeEventListener('scroll', holdTop);
-  }
+  const lockedKeys=new Set(['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' ','Spacebar']);
+  const wheel=e=>{if(!unlocked)e.preventDefault()};
+  const touch=e=>{if(!unlocked)e.preventDefault()};
+  const key=e=>{if(!unlocked && lockedKeys.has(e.key) && e.target!==button)e.preventDefault()};
+  const top=()=>{if(!unlocked && scrollY)scrollTo(0,0)};
+  addEventListener('wheel',wheel,{passive:false});
+  addEventListener('touchmove',touch,{passive:false});
+  addEventListener('keydown',key);
+  addEventListener('scroll',top,{passive:true});
 
   function unlock(){
-    if (unlocked || !bloomFinished || !pageLoaded) return;
-    unlocked = true;
-    cancelAnimationFrame(animationFrame);
-    fill.style.transform = 'scaleX(1)';
-    label.textContent = 'the story is ready  ↓';
+    if(unlocked || !finished)return;
+    unlocked=true;
+    fill.style.transform='scaleX(1)';
+    label.textContent='the story is ready ↓';
+    button.hidden=true;
     gate.classList.add('is-ready');
-    scrollTo(0, 0);
-
-    setTimeout(() => {
-      root.classList.remove('intro-locked');
-      cleanupGuards();
+    root.classList.remove('intro-locked');
+    removeEventListener('wheel',wheel);
+    removeEventListener('touchmove',touch);
+    removeEventListener('keydown',key);
+    removeEventListener('scroll',top);
+    setTimeout(()=>{
       gate.classList.add('is-leaving');
-      setTimeout(() => gate.remove(), 700);
-    }, reduced ? 100 : 650);
+      setTimeout(()=>gate.remove(),650);
+    },440);
   }
+  button.addEventListener('click',()=>{
+    if(!ready && !broken)return;
+    if(broken){finished=true;unlock();return}
+    if(begun)return;
+    begun=true;
+    button.hidden=true;
+    label.textContent='the garden is growing…';
+    // A real user gesture starts Bloom and the canvas bloom together.
+    window.bloomSoundtrack?.play?.();
+    heroFrame.contentWindow?.postMessage({type:'garden-begin'},location.origin);
+  });
 
-  function tick(now){
-    if (!startTime) startTime = now;
-    const p = Math.min(1, (now - startTime) / BLOOM_MS);
-    fill.style.transform = `scaleX(${p.toFixed(4)})`;
-
-    if (p >= 1) {
-      bloomFinished = true;
-      unlock();
-      return;
-    }
-    animationFrame = requestAnimationFrame(tick);
-  }
-
-  function beginBloomClock(){
-    if (bloomStarted) return;
-    bloomStarted = true;
-    startTime = 0;
-    animationFrame = requestAnimationFrame(tick);
-  }
-
-  // The hero's own animation reaches its fully-bloomed rest state at 22 seconds.
-  heroFrame.addEventListener('load', beginBloomClock, {once:true});
-
-  // Pause continuous garden CSS animation work while its iframe is out of view.
-  // The opening bloom is never paused while the viewer is watching it.
-  if ('IntersectionObserver' in window) {
-    let gardenDoc = null;
-    function installGardenPause() {
-      try {
-        const doc = heroFrame.contentDocument;
-        if (!doc || gardenDoc === doc) return;
-        gardenDoc = doc;
-        const pauseStyle = doc.createElement('style');
-        pauseStyle.textContent = '.garden-perf-paused *, .garden-perf-paused *::before, .garden-perf-paused *::after { animation-play-state: paused !important; }';
-        doc.head.appendChild(pauseStyle);
-      } catch (_) { /* A cross-origin hero still renders normally. */ }
-    }
-    const watchGarden = new IntersectionObserver(entries => {
-      for (const entry of entries) {
-        installGardenPause();
-        try {
-          const doc = heroFrame.contentDocument;
-          if (doc) doc.documentElement.classList.toggle('garden-perf-paused', !entry.isIntersecting);
-        } catch (_) {}
+  const acceptMessage=event=>{
+    if(event.source!==heroFrame.contentWindow || event.origin!==location.origin)return;
+    const {type,progress}=event.data||{};
+    if(type==='garden-bridge-attached'){
+      heroFrame.contentWindow.postMessage({type:'garden-status-request'},location.origin);
+    }else if(type==='garden-ready'){
+      ready=true;
+      if(!begun){
+        label.textContent='a little something for you';
+        button.hidden=false;button.disabled=false;
       }
-    }, {threshold: .01});
-    heroFrame.addEventListener('load', installGardenPause);
-    watchGarden.observe(heroFrame);
-  }
-
-  // Cached same-origin iframe may already be complete before this deferred script attaches.
-  try {
-    if (heroFrame.contentDocument?.readyState === 'complete') {
-      queueMicrotask(beginBloomClock);
+    }else if(type==='garden-started'){
+      begun=true;
+      button.hidden=true;
+      label.textContent='the garden is growing…';
+    }else if(type==='garden-progress'){
+      if(begun)fill.style.transform='scaleX('+Math.min(1,Math.max(0,Number(progress)||0))+')';
+    }else if(type==='garden-finished'){
+      finished=true;unlock();
+    }else if(type==='garden-error'){
+      broken=true;
+      label.textContent='the flowers need another moment';
+      button.textContent='continue the story ↗';
+      button.hidden=false;button.disabled=false;
     }
-  } catch (_) {}
+  };
+  addEventListener('message',acceptMessage);
 
-  // Last-resort safeguard against a cached iframe load event being missed.
-  setTimeout(beginBloomClock, 1200);
-
-  if (!pageLoaded) {
-    addEventListener('load', () => {
-      pageLoaded = true;
-      unlock();
-    }, {once:true});
+  function connectBridge(){
+    try{
+      const doc=heroFrame.contentDocument;
+      if(!doc)throw Error('Garden iframe cannot be accessed');
+      if(doc.querySelector('script[data-garden-bridge]'))return;
+      const script=doc.createElement('script');
+      script.src='garden-bridge.js';
+      script.dataset.gardenBridge='true';
+      script.onerror=()=>{
+        broken=true;
+        label.textContent='the garden could not finish loading';
+        button.textContent='continue the story ↗';
+        button.hidden=false;button.disabled=false;
+      };
+      doc.head.appendChild(script);
+    }catch(_){
+      broken=true;
+      label.textContent='the garden could not finish loading';
+      button.textContent='continue the story ↗';
+      button.hidden=false;button.disabled=false;
+    }
   }
-
-  // If the page was already complete when this script ran.
-  if (pageLoaded) unlock();
+  heroFrame.addEventListener('load',connectBridge);
+  try{if(heroFrame.contentDocument?.readyState==='complete')queueMicrotask(connectBridge)}catch(_){}
+  heroFrame.addEventListener('error',()=>{
+    broken=true;
+    button.hidden=false;button.disabled=false;
+    button.textContent='continue the story ↗';
+  });
 })();
 
-
-// Light scroll engine: render only visible scenes and request video when approaching.
 (() => {
   'use strict';
   const $=(s,r=document)=>r.querySelector(s);

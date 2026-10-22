@@ -64,6 +64,9 @@
   addEventListener('message',event=>{
     if(event.source!==parent||event.origin!==location.origin)return;
     if(event.data?.type==='garden-begin')start();
+    if(event.data?.type==='garden-visibility' && finished){
+      try{setPaused(!event.data.visible)}catch(_){}
+    }
     if(event.data?.type==='garden-status-request'){
       if(prepared)report('garden-ready',0);
       if(running)report('garden-started',Math.min(1,elapsed/REST_TIME));

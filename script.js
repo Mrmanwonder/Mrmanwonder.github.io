@@ -134,25 +134,10 @@
   const loveLetter=$('#loveLetter');
   const secret=$('#secretButton'), secretMessage=$('#secretMessage');
 
-  // Split words inside their original paragraphs without flattening line breaks.
-  $$('.love-letter > p',loveLetter.parentNode).forEach(paragraph=>{
-    const paragraphText=paragraph.textContent.trim().replace(/\s+/g,' ');
-    const fragment=document.createDocumentFragment();
-    paragraphText.split(' ').forEach((word,i,array)=>{
-      const el=document.createElement('span');
-      el.className='word';
-      el.textContent=word;
-      fragment.appendChild(el);
-      if(i<array.length-1)fragment.append(' ');
-    });
-    paragraph.replaceChildren(fragment);
-  });
   const scrubCanvas=$('#onlyUsCanvas');
   const scrubContext=scrubCanvas?.getContext('2d',{alpha:false});
   let lastPaintTime=-1, paintPending=false;
   const words=$$('.word',loveLetter);
-  let wordY=[], wordValues=new Int8Array(words.length);
-  wordValues.fill(-1);
 
   if('IntersectionObserver' in window&&!reduced){
     const io=new IntersectionObserver(entries=>{
@@ -168,7 +153,7 @@
     $$('.reveal').forEach(el=>el.classList.add('is-visible'));
   }
 
-  let pageTravel=1,flightStart=0,flightTravel=1,onlyUsStart=0,onlyUsTravel=1,letterTop=0,letterEnd=0;
+  let pageTravel=1,flightStart=0,flightTravel=1,onlyUsStart=0,onlyUsTravel=1;
   let onlyUsReady=false, onlyUsLastFrame=-1, videoRequest=0, scrollRaf=0, loadedScrub=false;
   let lastSeek=0;
   const clamp=(n,a=0,b=1)=>Math.min(b,Math.max(a,n));
@@ -183,29 +168,6 @@
       onlyUsTravel=Math.max(1,onlyUs.offsetHeight-height);
     }
     pageTravel=Math.max(1,document.documentElement.scrollHeight-height);
-    const bounds=loveLetter.getBoundingClientRect();
-    letterTop=bounds.top+scrollY;
-    letterEnd=letterTop+bounds.height;
-    wordY=words.map(el=>el.getBoundingClientRect().top+scrollY);
-    wordValues.fill(-1);
-  }
-
-  function updateLetter(y){
-    // Bring back the original continuous, scroll-linked word-by-word reveal.
-    // Word positions are measured on layout changes, never per scroll frame.
-    if(y+innerHeight<letterTop-innerHeight*.3 || y>letterEnd+innerHeight*.3)return;
-    const line=y+innerHeight*.66,band=155;
-    let last=-1;
-    for(let i=0;i<words.length;i++){
-      const p=clamp((line-wordY[i])/band);
-      const el=words[i];
-      const opacity=.12+.88*p;
-      el.style.opacity=opacity.toFixed(3);
-      el.style.transform=p>=1?'none':'translateY('+((1-p)*2).toFixed(2)+'px)';
-      el.style.color=p>.5?'#44535a':'rgba(68,83,90,.2)';
-      if(p>.62)last=i;
-    }
-    if(last>=0)words[last].style.color='#8d7182';
   }
 
   async function loadScrub(){
@@ -307,7 +269,6 @@
       petalStage.style.setProperty('--flight',clamp((y-flightStart)/flightTravel).toFixed(4));
     }
     updateScrub(y,now);
-    updateLetter(y);
   }
   function request(){if(!scrollRaf)scrollRaf=requestAnimationFrame(render);}
   addEventListener('scroll',request,{passive:true});
@@ -790,4 +751,80 @@
     after.style.removeProperty('--glow-x');
     after.style.removeProperty('--glow-y');
   });
+})();
+
+
+// Isolated letter animation. It cannot be blocked by the video/image routines.
+// Keeps each original paragraph and reveals every word as the reader scrolls.
+(() => {
+  'use strict';
+  const letter=document.getElementById('loveLetter');
+  if(!letter)return;
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced)return;
+  const paragraphs=[...letter.querySelectorAll(':scope > p')];
+  if(!paragraphs.length)return;
+  const words=[];
+  try{
+    for(const p of paragraphs){
+      if(p.querySelector('.word')){
+        words.push(...p.querySelectorAll('.word'));
+        continue;
+      }
+      const raw=p.textContent.trim().replace(/\s+/g,' ');
+      const tokens=raw.split(' ');
+      const frag=document.createDocumentFragment();
+      tokens.forEach((token,index)=>{
+        const span=document.createElement('span');
+        span.className='word';
+        span.textContent=token;
+        frag.append(span);
+        words.push(span);
+        if(index<tokens.length-1)frag.append(' ');
+      });
+      p.replaceChildren(frag);
+    }
+  }catch(error){
+    console.warn('Letter animation fallback',error);
+    return;
+  }
+  if(!words.length)return;
+  let positions=[], lineTop=0, lineBottom=0, ticking=0, lastIndex=-1;
+  function measure(){
+    const shift=scrollY;
+    const block=letter.getBoundingClientRect();
+    lineTop=block.top+shift;
+    lineBottom=block.bottom+shift;
+    positions=words.map(word=>word.getBoundingClientRect().top+shift);
+    update();
+  }
+  function clamp(value){return Math.min(1,Math.max(0,value));}
+  function update(){
+    ticking=0;
+    const y=scrollY;
+    if(y+innerHeight<lineTop-innerHeight*.4 || y>lineBottom+innerHeight*.35)return;
+    const focus=y+innerHeight*.66;
+    const distance=155;
+    let newest=-1;
+    for(let i=0;i<words.length;i++){
+      const intensity=clamp((focus-positions[i])/distance);
+      const opacity=.12+.88*intensity;
+      const el=words[i];
+      el.style.opacity=opacity.toFixed(3);
+      el.style.transform=intensity>=.999?'none':'translateY('+((1-intensity)*2).toFixed(2)+'px)';
+      el.style.color=intensity>.5?'#44535a':'rgba(68,83,90,.2)';
+      if(intensity>.62)newest=i;
+    }
+    if(lastIndex>=0 && lastIndex!==newest){words[lastIndex].style.color='';}
+    if(newest>=0)words[newest].style.color='#8d7182';
+    lastIndex=newest;
+  }
+  function request(){if(!ticking)ticking=requestAnimationFrame(update);}
+  letter.classList.add('letter-animated');
+  addEventListener('scroll',request,{passive:true});
+  addEventListener('resize',measure,{passive:true});
+  addEventListener('load',measure,{once:true});
+  if(document.fonts?.ready)document.fonts.ready.then(measure);
+  if('ResizeObserver' in window)new ResizeObserver(measure).observe(letter);
+  measure();
 })();

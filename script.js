@@ -134,21 +134,23 @@
   const loveLetter=$('#loveLetter');
   const secret=$('#secretButton'), secretMessage=$('#secretMessage');
 
-  const letterText=loveLetter.textContent.trim().replace(/\s+/g,' ');
-  const fragment=document.createDocumentFragment();
-  loveLetter.textContent='';
-  letterText.split(' ').forEach((word,i,array)=>{
-    const el=document.createElement('span');
-    el.className='word';
-    el.textContent=word;
-    fragment.appendChild(el);
-    if(i<array.length-1)fragment.append(' ');
+  // Split words inside their original paragraphs without flattening line breaks.
+  $$('.love-letter > p',loveLetter.parentNode).forEach(paragraph=>{
+    const paragraphText=paragraph.textContent.trim().replace(/\s+/g,' ');
+    const fragment=document.createDocumentFragment();
+    paragraphText.split(' ').forEach((word,i,array)=>{
+      const el=document.createElement('span');
+      el.className='word';
+      el.textContent=word;
+      fragment.appendChild(el);
+      if(i<array.length-1)fragment.append(' ');
+    });
+    paragraph.replaceChildren(fragment);
   });
-  loveLetter.append(fragment);
   const scrubCanvas=$('#onlyUsCanvas');
   const scrubContext=scrubCanvas?.getContext('2d',{alpha:false});
   let lastPaintTime=-1, paintPending=false;
-  const words=$('.word',loveLetter);
+  const words=$$('.word',loveLetter);
   let wordY=[], wordValues=new Int8Array(words.length);
   wordValues.fill(-1);
 

@@ -1,3 +1,78 @@
+// Isolated letter animation. It cannot be blocked by the video/image routines.
+// Keeps each original paragraph and reveals every word as the reader scrolls.
+(() => {
+  'use strict';
+  const letter=document.getElementById('loveLetter');
+  if(!letter)return;
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced)return;
+  const paragraphs=[...letter.querySelectorAll(':scope > p')];
+  if(!paragraphs.length)return;
+  const words=[];
+  try{
+    for(const p of paragraphs){
+      if(p.querySelector('.word')){
+        words.push(...p.querySelectorAll('.word'));
+        continue;
+      }
+      const raw=p.textContent.trim().replace(/\s+/g,' ');
+      const tokens=raw.split(' ');
+      const frag=document.createDocumentFragment();
+      tokens.forEach((token,index)=>{
+        const span=document.createElement('span');
+        span.className='word';
+        span.textContent=token;
+        frag.append(span);
+        words.push(span);
+        if(index<tokens.length-1)frag.append(' ');
+      });
+      p.replaceChildren(frag);
+    }
+  }catch(error){
+    console.warn('Letter animation fallback',error);
+    return;
+  }
+  if(!words.length)return;
+  let positions=[], lineTop=0, lineBottom=0, ticking=0, lastIndex=-1;
+  function measure(){
+    const shift=scrollY;
+    const block=letter.getBoundingClientRect();
+    lineTop=block.top+shift;
+    lineBottom=block.bottom+shift;
+    positions=words.map(word=>word.getBoundingClientRect().top+shift);
+    update();
+  }
+  function clamp(value){return Math.min(1,Math.max(0,value));}
+  function update(){
+    ticking=0;
+    const y=scrollY;
+    if(y+innerHeight<lineTop-innerHeight*.4 || y>lineBottom+innerHeight*.35)return;
+    const focus=y+innerHeight*.66;
+    const distance=155;
+    let newest=-1;
+    for(let i=0;i<words.length;i++){
+      const intensity=clamp((focus-positions[i])/distance);
+      const opacity=.12+.88*intensity;
+      const el=words[i];
+      el.style.opacity=opacity.toFixed(3);
+      el.style.transform=intensity>=.999?'none':'translateY('+((1-intensity)*2).toFixed(2)+'px)';
+      el.style.color=intensity>.5?'#44535a':'rgba(68,83,90,.2)';
+      if(intensity>.62)newest=i;
+    }
+    if(lastIndex>=0 && lastIndex!==newest){words[lastIndex].style.color='';}
+    if(newest>=0)words[newest].style.color='#8d7182';
+    lastIndex=newest;
+  }
+  function request(){if(!ticking)ticking=requestAnimationFrame(update);}
+  letter.classList.add('letter-animated');
+  addEventListener('scroll',request,{passive:true});
+  addEventListener('resize',measure,{passive:true});
+  addEventListener('load',measure,{once:true});
+  if(document.fonts?.ready)document.fonts.ready.then(measure);
+  if('ResizeObserver' in window)new ResizeObserver(measure).observe(letter);
+  measure();
+})();
+
 // Exact garden gating. Do not infer animation progress from iframe load time.
 (() => {
   'use strict';
@@ -754,77 +829,3 @@
 })();
 
 
-// Isolated letter animation. It cannot be blocked by the video/image routines.
-// Keeps each original paragraph and reveals every word as the reader scrolls.
-(() => {
-  'use strict';
-  const letter=document.getElementById('loveLetter');
-  if(!letter)return;
-  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(reduced)return;
-  const paragraphs=[...letter.querySelectorAll(':scope > p')];
-  if(!paragraphs.length)return;
-  const words=[];
-  try{
-    for(const p of paragraphs){
-      if(p.querySelector('.word')){
-        words.push(...p.querySelectorAll('.word'));
-        continue;
-      }
-      const raw=p.textContent.trim().replace(/\s+/g,' ');
-      const tokens=raw.split(' ');
-      const frag=document.createDocumentFragment();
-      tokens.forEach((token,index)=>{
-        const span=document.createElement('span');
-        span.className='word';
-        span.textContent=token;
-        frag.append(span);
-        words.push(span);
-        if(index<tokens.length-1)frag.append(' ');
-      });
-      p.replaceChildren(frag);
-    }
-  }catch(error){
-    console.warn('Letter animation fallback',error);
-    return;
-  }
-  if(!words.length)return;
-  let positions=[], lineTop=0, lineBottom=0, ticking=0, lastIndex=-1;
-  function measure(){
-    const shift=scrollY;
-    const block=letter.getBoundingClientRect();
-    lineTop=block.top+shift;
-    lineBottom=block.bottom+shift;
-    positions=words.map(word=>word.getBoundingClientRect().top+shift);
-    update();
-  }
-  function clamp(value){return Math.min(1,Math.max(0,value));}
-  function update(){
-    ticking=0;
-    const y=scrollY;
-    if(y+innerHeight<lineTop-innerHeight*.4 || y>lineBottom+innerHeight*.35)return;
-    const focus=y+innerHeight*.66;
-    const distance=155;
-    let newest=-1;
-    for(let i=0;i<words.length;i++){
-      const intensity=clamp((focus-positions[i])/distance);
-      const opacity=.12+.88*intensity;
-      const el=words[i];
-      el.style.opacity=opacity.toFixed(3);
-      el.style.transform=intensity>=.999?'none':'translateY('+((1-intensity)*2).toFixed(2)+'px)';
-      el.style.color=intensity>.5?'#44535a':'rgba(68,83,90,.2)';
-      if(intensity>.62)newest=i;
-    }
-    if(lastIndex>=0 && lastIndex!==newest){words[lastIndex].style.color='';}
-    if(newest>=0)words[newest].style.color='#8d7182';
-    lastIndex=newest;
-  }
-  function request(){if(!ticking)ticking=requestAnimationFrame(update);}
-  letter.classList.add('letter-animated');
-  addEventListener('scroll',request,{passive:true});
-  addEventListener('resize',measure,{passive:true});
-  addEventListener('load',measure,{once:true});
-  if(document.fonts?.ready)document.fonts.ready.then(measure);
-  if('ResizeObserver' in window)new ResizeObserver(measure).observe(letter);
-  measure();
-})();

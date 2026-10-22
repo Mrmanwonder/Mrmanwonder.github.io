@@ -1205,3 +1205,14 @@ main{width:100%;min-width:0}
 }
 .only-us-scroll__still[data-ready="true"]{opacity:1}
 .only-us-scroll__media.is-frame-ready .only-us-scroll__still{opacity:0}
+
+
+/* Content-first fallback. The letter and memories should remain legible even
+   if a browser delays the reveal observer or a media decoder is unavailable. */
+.letter-paper.reveal,
+.memory.reveal,
+.doodle-interlude__card.reveal,
+.whimsy__art.reveal{
+  opacity:1;
+  transform:none;
+}

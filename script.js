@@ -144,7 +144,10 @@
     if(i<array.length-1)fragment.append(' ');
   });
   loveLetter.append(fragment);
-  const words=$$('.word',loveLetter);
+  const scrubCanvas=$('#onlyUsCanvas');
+  const scrubContext=scrubCanvas?.getContext('2d',{alpha:false});
+  let lastPaintTime=-1, paintPending=false;
+  const words=$('.word',loveLetter);
   let wordY=[], wordValues=new Int8Array(words.length);
   wordValues.fill(-1);
 
@@ -202,13 +205,54 @@
     if(last>=0)words[last].style.color='#8d7182';
   }
 
-  function loadScrub(){
+  async function loadScrub(){
     if(!onlyUsVideo || loadedScrub)return;
     loadedScrub=true;
     const source=onlyUsVideo.querySelector('source[data-src]');
-    if(source){source.src=source.dataset.src;source.removeAttribute('data-src');}
-    onlyUsVideo.preload='metadata';
-    onlyUsVideo.load();
+    const url=source?.dataset.src;
+    if(!url)return;
+    try{
+      // Complete download before seeking: never expose a half-buffered movie.
+      const response=await fetch(url,{cache:'force-cache'});
+      if(!response.ok)throw Error('Scrub download '+response.status);
+      const blob=await response.blob();
+      if(!blob.size)throw Error('Empty crowd film');
+      if(source)source.remove();
+      onlyUsVideo.src=URL.createObjectURL(blob);
+      onlyUsVideo.preload='auto';
+      onlyUsVideo.load();
+    }catch(err){
+      // Keep the pre-decoded static image on screen instead of a stalling video.
+      console.warn('Crowd film could not be prepared',err);
+    }
+  }
+  function paintScrubFrame(){
+    if(!scrubContext || !scrubCanvas || !onlyUsVideo || onlyUsVideo.readyState<2)return;
+    try{
+      const w=Math.min(1920,onlyUsVideo.videoWidth||1280);
+      const h=Math.max(1,Math.round(w*(onlyUsVideo.videoHeight||720)/(onlyUsVideo.videoWidth||1280)));
+      if(scrubCanvas.width!==w || scrubCanvas.height!==h){
+        scrubCanvas.width=w;scrubCanvas.height=h;
+      }
+      scrubContext.drawImage(onlyUsVideo,0,0,w,h);
+      onlyUsMedia.classList.add('is-frame-ready');
+      lastPaintTime=onlyUsVideo.currentTime;
+    }catch(_){ /* The last complete frame stays on screen. */ }
+  }
+  function schedulePaint(){
+    if(paintPending)return;
+    paintPending=true;
+    const draw=()=>{
+      paintPending=false;
+      paintScrubFrame();
+      request();
+    };
+    if(typeof onlyUsVideo.requestVideoFrameCallback==='function'){
+      let fallback=setTimeout(draw,160);
+      onlyUsVideo.requestVideoFrameCallback(()=>{
+        clearTimeout(fallback);draw();
+      });
+    }else requestAnimationFrame(draw);
   }
   if(onlyUsVideo){
     onlyUsVideo.pause();
@@ -217,14 +261,19 @@
       onlyUsLastFrame=-1;
       request();
     });
-    onlyUsVideo.addEventListener('seeked',request);
+    onlyUsVideo.addEventListener('loadeddata',schedulePaint);
+    onlyUsVideo.addEventListener('seeked',schedulePaint);
     if('IntersectionObserver' in window){
       const prefetch=new IntersectionObserver(entries=>{
-        if(entries.some(x=>x.isIntersecting)){loadScrub();prefetch.disconnect();}
-      },{rootMargin:'150% 0px'});
+        if(entries.some(x=>x.isIntersecting)){
+          loadScrub();prefetch.disconnect();
+        }
+      },{rootMargin:'1800px 0px'});
       prefetch.observe(onlyUs);
     }else{
-      addEventListener('scroll',()=>{if(scrollY+innerHeight*2>onlyUs.offsetTop)loadScrub();},{passive:true});
+      addEventListener('scroll',()=>{
+        if(scrollY+innerHeight*2>onlyUs.offsetTop)loadScrub();
+      },{passive:true});
     }
   }
   function updateScrub(y,now){
@@ -235,7 +284,7 @@
     const zp=smoothstep((raw-.56)/.44);
     onlyUsMedia.style.setProperty('--only-us-zoom',(1+zp*.145).toFixed(4));
     onlyUsMedia.style.setProperty('--only-us-shift',(-zp*.7).toFixed(3)+'%');
-    if(!onlyUsReady || onlyUsVideo.seeking || now-lastSeek<80)return;
+    if(!onlyUsReady || onlyUsVideo.seeking || now-lastSeek<85)return;
     const fps=Number(onlyUsVideo.dataset.fps)||24;
     const frames=Number(onlyUsVideo.dataset.frames)||Math.max(1,Math.round(onlyUsVideo.duration*fps));
     const frame=Math.min(frames-1,Math.max(0,Math.round(filmProgress*(frames-1))));
@@ -245,6 +294,7 @@
     onlyUsLastFrame=frame;
     lastSeek=now;
     if(Math.abs(onlyUsVideo.currentTime-target)>.018)onlyUsVideo.currentTime=target;
+    else if(lastPaintTime<0)schedulePaint();
   }
   function render(now=performance.now()){
     scrollRaf=0;
@@ -264,6 +314,46 @@
   secret?.addEventListener('click',()=>secretMessage?.classList.toggle('is-visible'));
   measure();
   request();
+})();
+
+// Defer nonessential images, then reveal the whole decoded image in one frame.
+(() => {
+  'use strict';
+  const root=document.documentElement;
+  const images=[...document.querySelectorAll(
+    '.memory__frame img,.doodle-interlude__card img,.whimsy__art img,.only-us-scroll__still'
+  )];
+  const done=img=>{
+    if(img.dataset.ready==='true')return;
+    img.dataset.ready='true';
+  };
+  function decode(img){
+    if(img.dataset.ready==='true')return;
+    if(img.complete && img.naturalWidth){
+      const p=typeof img.decode==='function'?img.decode():Promise.resolve();
+      Promise.resolve(p).then(()=>done(img),()=>done(img));
+      return;
+    }
+    if(img.complete && !img.naturalWidth)return;
+    img.addEventListener('load',()=>decode(img),{once:true});
+  }
+  for(const img of images){
+    decode(img);
+    img.addEventListener('error',()=>{img.dataset.error='true'},{once:true});
+  }
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver(entries=>{
+      for(const e of entries){
+        if(!e.isIntersecting)continue;
+        const img=e.target;
+        img.loading='eager';
+        img.fetchPriority='high';
+        decode(img);
+        io.unobserve(img);
+      }
+    },{rootMargin:'900px 0px'});
+    images.forEach(img=>io.observe(img));
+  }
 })();
 
 // V21 — robust site-wide Bloom soundtrack.

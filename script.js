@@ -36,6 +36,7 @@
     button.hidden=true;
     gate.classList.add('is-ready');
     root.classList.remove('intro-locked');
+    dispatchEvent(new Event('birthday-garden-ready'));
     removeEventListener('wheel',wheel);
     removeEventListener('touchmove',touch);
     removeEventListener('keydown',key);
@@ -471,8 +472,8 @@
 })();
 
 
-// Reliable, non-blocking Eyes finale — intent-aware snap + muted autoplay.
-// Crucially, continued DOWNWARD wheel momentum must not cancel the snap.
+// The last moment: only a fully downloaded, decoded Eyes film is ever shown.
+// Natural scroll is retained; replay uses its click gesture to request audio.
 (() => {
   'use strict';
   const footer=document.getElementById('finale');
@@ -480,258 +481,297 @@
   const after=document.getElementById('finaleAfter');
   const replay=document.getElementById('eyesReplay');
   const audioHint=document.getElementById('eyesEnableAudio');
-  if(!footer || !video || !after || !replay) return;
-
+  if(!footer||!video||!after||!replay||!audioHint)return;
+  const status=document.getElementById('eyesPreparing');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const source=video.querySelector('source[data-src]');
-  let state='idle', sourceLoaded=false, videoUsable=false;
-  let armed=true, scrollRaf=0, snapRaf=0, timer=0, stallTimer=0;
-  let snapAbort=null, pointerRaf=0, lastScrollY=scrollY;
-  const clearTimers=()=>{clearTimeout(timer);clearTimeout(stallTimer);};
-
-  function loadFilm(){
-    if(sourceLoaded)return;
-    sourceLoaded=true;
-    video.muted=true;                    // reliable autoplay on mobile and desktop
-    video.defaultMuted=true;
-    video.setAttribute('muted','');
-    if(source){
-      source.src=source.dataset.src;
-      source.removeAttribute('data-src');
-    }
-    video.preload='auto';
-    video.load();
-  }
+  const mediaSource=video.querySelector('source[data-src]');
+  const file=mediaSource?.dataset.src||'Eyes.mp4';
+  let state='idle',armed=true,scrollRaf=0,snapRaf=0;
+  let bufferedPromise=null,completeVideo=false,loadFailed=false;
+  let holdTimer=0,playWatchdog=0,scrollAbort=null,lightRaf=0;
+  let lastScroll=scrollY;
+  const timers=()=>{
+    clearTimeout(holdTimer);
+    clearTimeout(playWatchdog);
+  };
 
   function stopBloom(){
-    if(window.bloomSoundtrack?.stopForFinale){
-      window.bloomSoundtrack.stopForFinale();
-      return;
+    if(window.bloomSoundtrack?.stopForFinale)window.bloomSoundtrack.stopForFinale();
+    else{
+      const song=document.getElementById('siteSoundtrack');
+      if(song){song.volume=0;song.pause();}
+      const control=document.getElementById('soundtrackControl');
+      if(control)control.hidden=true;
     }
-    const song=document.getElementById('siteSoundtrack');
-    if(song){song.volume=0;song.pause();}
-    const control=document.getElementById('soundtrackControl');
-    if(control)control.hidden=true;
   }
-
-  function showFooter(){
+  function showLetter(){
     if(state==='complete')return;
     state='complete';
-    clearTimers();
+    timers();
     video.pause();
-    footer.classList.remove('is-entering','is-playing','is-holding');
+    footer.classList.remove('is-preparing','is-entering','is-playing','is-holding');
     footer.classList.add('is-complete');
     after.inert=false;
     after.setAttribute('aria-hidden','false');
-    replay.hidden=!videoUsable;
+    replay.hidden=!completeVideo;
     audioHint.hidden=true;
   }
-  function finished(){
-    if(state==='complete' || state==='holding')return;
+  function filmEnded(){
+    if(state!=='playing')return;
     state='holding';
-    clearTimers();
+    timers();
+    footer.classList.remove('is-playing');
     footer.classList.add('is-holding');
-    // Preserve the actual last frame for two complete seconds.
-    timer=setTimeout(showFooter,2000);
-  }
-  function fallback(){
-    // Even a slow/missing video cannot leave the viewer on an empty ending.
-    showFooter();
+    holdTimer=setTimeout(showLetter,2000);
   }
 
-  // A short native-feeling eased scroll. Momentum *toward* the finale doesn't
-  // interrupt it; intentional movement BACK UP can, and scrolling is never locked.
-  function moveIntoPlace(){
-    const destination=Math.round(scrollY+footer.getBoundingClientRect().top);
-    const start=scrollY;
-    const delta=destination-start;
-    if(reduced || Math.abs(delta)<3){
-      scrollTo({top:destination,behavior:'auto'});
+  function preparedVideo(){
+    if(bufferedPromise)return bufferedPromise;
+    bufferedPromise=(async()=>{
+      // Fetch the ENTIRE file before revealing the first frame. This prevents
+      // streaming network stalls and partial progressive video playback.
+      const response=await fetch(file,{cache:'force-cache',priority:'low'});
+      if(!response.ok)throw Error('Eyes response '+response.status);
+      const blob=await response.blob();
+      if(blob.size<4096)throw Error('Incomplete Eyes media');
+      const local=URL.createObjectURL(blob);
+      if(mediaSource)mediaSource.remove();
+      video.preload='auto';
+      video.src=local;
+      video.load();
+      await new Promise((resolve,reject)=>{
+        if(video.readyState>=2 && video.videoWidth>0){resolve();return;}
+        let timeout=0;
+        const cleanup=()=>{
+          clearTimeout(timeout);
+          video.removeEventListener('loadeddata',ready);
+          video.removeEventListener('error',fail);
+        };
+        const ready=()=>{cleanup();resolve();};
+        const fail=()=>{cleanup();reject(new Error('Eyes could not decode'));};
+        video.addEventListener('loadeddata',ready,{once:true});
+        video.addEventListener('error',fail,{once:true});
+        timeout=setTimeout(fail,25000);
+      });
+      if(video.videoWidth<=0)throw Error('No Eyes video frame');
+      completeVideo=true;
+      footer.classList.add('has-video');
+      return true;
+    })().catch(err=>{
+      loadFailed=true;
+      bufferedPromise=null;
+      console.warn('Eyes film preparation failed',err);
+      throw err;
+    });
+    return bufferedPromise;
+  }
+
+  // Fetch when the garden finishes, when a visitor approaches the finale, or on replay.
+  addEventListener('birthday-garden-ready',()=>{
+    setTimeout(()=>{if(!bufferedPromise)preparedVideo().catch(()=>{});},2200);
+  },{once:true});
+  if('IntersectionObserver' in window){
+    const near=new IntersectionObserver(entries=>{
+      if(entries.some(e=>e.isIntersecting)){
+        preparedVideo().catch(()=>{});
+        near.disconnect();
+      }
+    },{rootMargin:'1900px 0px'});
+    near.observe(footer);
+  }
+
+  function easedSnap(){
+    const destination=Math.max(0,Math.round(footer.getBoundingClientRect().top+scrollY+1));
+    const from=scrollY;
+    const distance=destination-from;
+    if(reduced || Math.abs(distance)<3){
+      const root=document.documentElement,old=root.style.scrollBehavior;
+      root.style.scrollBehavior='auto';
+      scrollTo(0,destination);
+      root.style.scrollBehavior=old;
       return Promise.resolve(true);
     }
     return new Promise(resolve=>{
-      let done=false;
-      const duration=520, began=performance.now();
-      const root=document.documentElement;
-      const previous=root.style.scrollBehavior;
+      const root=document.documentElement,old=root.style.scrollBehavior;
       root.style.scrollBehavior='auto';
-      const cancel=()=>{
+      let done=false;
+      const started=performance.now(),duration=510;
+      function cleanup(){
+        root.style.scrollBehavior=old;
+        removeEventListener('wheel',wheel);
+        removeEventListener('keydown',key);
+        removeEventListener('touchstart',touchStart);
+        removeEventListener('touchmove',touchMove);
+        scrollAbort=null;
+      }
+      function finish(ok){
         if(done)return;
-        done=true;
-        cancelAnimationFrame(snapRaf);
-        root.style.scrollBehavior=previous;
-        removeEventListener('wheel',onWheel);
-        removeEventListener('keydown',onKey);
-        removeEventListener('touchstart',onTouchStart);
-        removeEventListener('touchmove',onTouchMove);
-        snapAbort=null;
-        resolve(false);
+        done=true;cancelAnimationFrame(snapRaf);cleanup();resolve(ok);
+      }
+      const wheel=e=>{if(e.deltaY<-7)finish(false)};
+      const key=e=>{if(['ArrowUp','PageUp','Home'].includes(e.key))finish(false)};
+      let initialTouchY=0;
+      const touchStart=e=>{initialTouchY=e.touches?.[0]?.clientY||0};
+      const touchMove=e=>{
+        const v=e.touches?.[0]?.clientY;
+        if(typeof v==='number' && v-initialTouchY>12)finish(false);
       };
-      const onWheel=e=>{if(e.deltaY<-5)cancel();};
-      const onKey=e=>{if(['ArrowUp','PageUp','Home'].includes(e.key))cancel();};
-      let touchY=0;
-      const onTouchStart=e=>{touchY=e.touches?.[0]?.clientY||0;};
-      const onTouchMove=e=>{
-        const y=e.touches?.[0]?.clientY;
-        if(typeof y==='number' && y-touchY>12)cancel();
-      };
-      snapAbort=cancel;
-      addEventListener('wheel',onWheel,{passive:true});
-      addEventListener('keydown',onKey,{passive:true});
-      addEventListener('touchstart',onTouchStart,{passive:true});
-      addEventListener('touchmove',onTouchMove,{passive:true});
-      const frame=now=>{
+      scrollAbort=()=>finish(false);
+      addEventListener('wheel',wheel,{passive:true});
+      addEventListener('keydown',key,{passive:true});
+      addEventListener('touchstart',touchStart,{passive:true});
+      addEventListener('touchmove',touchMove,{passive:true});
+      function frame(now){
         if(done)return;
-        const p=Math.min(1,(now-began)/duration);
+        const p=Math.min(1,(now-started)/duration);
         const eased=p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
-        scrollTo(0,start+delta*eased);
-        if(p<1){snapRaf=requestAnimationFrame(frame);return;}
-        done=true;
-        root.style.scrollBehavior=previous;
-        removeEventListener('wheel',onWheel);
-        removeEventListener('keydown',onKey);
-        removeEventListener('touchstart',onTouchStart);
-        removeEventListener('touchmove',onTouchMove);
-        snapAbort=null;
-        resolve(true);
-      };
+        scrollTo(0,from+distance*eased);
+        if(p<1)snapRaf=requestAnimationFrame(frame);
+        else finish(true);
+      }
       snapRaf=requestAnimationFrame(frame);
     });
   }
 
-  async function begin(replaying=false){
-    if(state!=='idle' && !(replaying && state==='complete'))return;
+  async function playAutomatic(){
+    // First attempt WITH sound, because the user already tapped the garden.
+    // If browser policy forbids it, fall back to muted autoplay instead of
+    // blocking the film; the unobtrusive audio control remains available.
+    video.defaultMuted=false;
+    video.muted=false;
+    video.removeAttribute('muted');
+    try{
+      await video.play();
+      audioHint.hidden=true;
+      return;
+    }catch(err){
+      if(state!=='playing')return;
+      video.muted=true;
+      video.setAttribute('muted','');
+      try{
+        await video.play();
+        audioHint.hidden=false;
+      }catch(_){
+        showLetter();
+      }
+    }
+  }
+
+  async function enter(){
+    if(state!=='idle')return;
     state='snapping';
     armed=false;
-    clearTimers();
-    footer.classList.remove('is-complete','is-playing','is-holding','is-entering');
+    stopBloom();
+    footer.classList.remove('is-complete','is-holding','is-playing','is-entering');
     after.inert=true;
     after.setAttribute('aria-hidden','true');
     replay.hidden=true;
     audioHint.hidden=true;
-    stopBloom();
-    loadFilm();
-
-    const reached=await moveIntoPlace();
-    if(!reached){
-      state='idle';
-      // Re-arm only after leaving the footer; don't fight the user's scroll.
-      return;
-    }
+    const snapped=await easedSnap();
+    if(!snapped){state='idle';return;}
+    state='preparing';
+    footer.classList.add('is-preparing');
+    if(status)status.textContent='a quiet moment, almost ready…';
+    let okay=false;
+    try{
+      okay=await preparedVideo();
+    }catch(_){if(state==='preparing'){showLetter();}return;}
+    if(state!=='preparing'||!okay)return;
+    footer.classList.remove('is-preparing');
+    if(reduced){showLetter();return;}
+    try{video.pause();video.currentTime=0;}catch(_){}
     state='opening';
-    if(reduced && !replaying){showFooter();return;}
-    try {video.pause();video.currentTime=0;}catch(_){}
-    // Begin fading in the real video frame before commencing playback.
     footer.classList.add('is-entering');
-    await new Promise(r=>setTimeout(r,430));
+    await new Promise(resolve=>setTimeout(resolve,420));
     if(state!=='opening')return;
-
     state='playing';
     footer.classList.add('is-playing');
-    video.muted=true;
-    // HTML muted+playsinline is compatible with scroll-triggered autoplay.
-    clearTimers();
-    timer=setTimeout(()=>{
-      if(state==='playing' && video.currentTime<.12)fallback();
-    },12500);
-    try{
-      const promise=video.play();
-      if(promise && typeof promise.catch==='function')await promise;
-      if(state==='playing')audioHint.hidden=false; // Optional tap to enable film audio.
-    }catch(err){
-      fallback();
+    playWatchdog=setTimeout(()=>{
+      if(state==='playing'&&video.currentTime<.13)showLetter();
+    },12000);
+    playAutomatic();
+  }
+
+  // A replay click grants a fresh user activation. Start unmuted playback
+  // synchronously inside that event before any awaited scroll or timeout.
+  function replayFilm(){
+    if(!completeVideo || state!=='complete')return;
+    timers();
+    state='playing';
+    after.inert=true;
+    after.setAttribute('aria-hidden','true');
+    footer.classList.remove('is-complete','is-preparing','is-holding');
+    footer.classList.add('is-entering','is-playing');
+    replay.hidden=true;
+    audioHint.hidden=true;
+    video.pause();
+    try{video.currentTime=0;}catch(_){}
+    video.defaultMuted=false;
+    video.muted=false;
+    video.removeAttribute('muted');
+    const attempt=video.play();
+    if(attempt&&typeof attempt.catch==='function'){
+      attempt.catch(async()=>{
+        video.muted=true;
+        video.setAttribute('muted','');
+        try{await video.play();audioHint.hidden=false;}
+        catch(_){showLetter();}
+      });
     }
   }
 
-  video.addEventListener('loadedmetadata',()=>{
-    videoUsable=Number.isFinite(video.duration) && video.duration>0;
-    if(videoUsable)footer.classList.add('has-video');
-  });
-  video.addEventListener('ended',finished);
-  video.addEventListener('error',()=>{
-    if(state==='opening'||state==='playing'||state==='holding')fallback();
-  });
-  source?.addEventListener('error',()=>{
-    if(state==='opening'||state==='playing'||state==='holding')fallback();
-  });
+  video.addEventListener('ended',filmEnded);
   video.addEventListener('timeupdate',()=>{
-    if(video.currentTime>.12 && state==='playing')clearTimeout(timer);
-    if(!video.paused)clearTimeout(stallTimer);
+    if(state==='playing'&&video.currentTime>.15)clearTimeout(playWatchdog);
   });
-  video.addEventListener('waiting',()=>{
-    if(state!=='playing')return;
-    clearTimeout(stallTimer);
-    stallTimer=setTimeout(fallback,16000);
-  });
-  video.addEventListener('playing',()=>clearTimeout(stallTimer));
-
-  replay.addEventListener('click',e=>{
+  video.addEventListener('error',()=>{if(['opening','playing','preparing'].includes(state))showLetter()});
+  video.addEventListener('stalled',()=>{if(state==='playing')console.warn('Local Eyes decoding stalled')});
+  replay.addEventListener('click',e=>{e.preventDefault();replayFilm()});
+  audioHint.addEventListener('click',e=>{
     e.preventDefault();
-    begin(true);
+    video.defaultMuted=false;
+    video.muted=false;
+    video.removeAttribute('muted');
+    video.play().then(()=>{audioHint.hidden=true}).catch(()=>{
+      video.muted=true;video.setAttribute('muted','');
+    });
   });
-  audioHint.addEventListener('click',async e=>{
-    e.preventDefault();
-    try {
-      video.muted=false;video.removeAttribute('muted');
-      await video.play();
-      audioHint.hidden=true;
-    }catch(_){video.muted=true;}
-  });
-
-  // Download close to the finale, without delaying the initial garden.
-  if('IntersectionObserver' in window){
-    const preload=new IntersectionObserver(entries=>{
-      if(entries.some(e=>e.isIntersecting)){
-        loadFilm();
-        preload.disconnect();
-      }
-    },{rootMargin:'1100px 0px'});
-    preload.observe(footer);
-  }
 
   function checkEntry(){
     scrollRaf=0;
-    const y=scrollY;
-    const rect=footer.getBoundingClientRect();
-    const entering=rect.top<=innerHeight*.92 && rect.bottom>0;
-    const approachingDown=y>=lastScrollY-2;
-    lastScrollY=y;
-    if(rect.top>innerHeight*.97 && state==='idle')armed=true;
-    if(state==='idle' && armed && entering && approachingDown){
-      begin();
-    }
-    // Visitors can return to previous sections at any time. Pause video
-    // offscreen and resume it if they return before the film has ended.
+    const y=scrollY,rect=footer.getBoundingClientRect();
+    const enters=rect.top<innerHeight*.88 && rect.bottom>0;
+    const descending=y>=lastScroll-2;
+    lastScroll=y;
+    if(rect.top>innerHeight*.98 && state==='idle')armed=true;
+    if(state==='idle'&&armed&&enters&&descending)enter();
+    // No scroll trap. Leaving the film simply pauses it.
     if(state==='playing'){
-      if(rect.bottom<0 || rect.top>innerHeight){
-        if(!video.paused)video.pause();
-      }else if(video.paused && video.currentTime>.05 &&
-          Number.isFinite(video.duration) && video.currentTime<video.duration-.05){
+      const offscreen=rect.bottom<0||rect.top>innerHeight;
+      if(offscreen&&!video.paused)video.pause();
+      else if(!offscreen&&video.paused&&video.currentTime>.05 &&
+              video.currentTime<video.duration-.05){
         video.play().catch(()=>{});
       }
     }
   }
-  const requestCheck=()=>{
-    if(!scrollRaf)scrollRaf=requestAnimationFrame(checkEntry);
-  };
+  const requestCheck=()=>{if(!scrollRaf)scrollRaf=requestAnimationFrame(checkEntry)};
   addEventListener('scroll',requestCheck,{passive:true});
   addEventListener('resize',requestCheck,{passive:true});
   addEventListener('pageshow',requestCheck);
-  // Let initial page restoration settle before checking direct footer links.
   requestAnimationFrame(requestCheck);
 
-  // The interactive footer light moves on the compositor, not through costly
-  // full-page gradient repaints.
+  // One transform per pointer animation frame for a tiny, subtle blue light.
   after.addEventListener('pointermove',e=>{
-    if(state!=='complete' || e.pointerType==='touch')return;
+    if(state!=='complete'||e.pointerType==='touch')return;
     const rect=after.getBoundingClientRect();
     const x=(e.clientX-rect.left).toFixed(1)+'px';
     const y=(e.clientY-rect.top).toFixed(1)+'px';
-    if(pointerRaf)cancelAnimationFrame(pointerRaf);
-    pointerRaf=requestAnimationFrame(()=>{
+    if(lightRaf)cancelAnimationFrame(lightRaf);
+    lightRaf=requestAnimationFrame(()=>{
       after.style.setProperty('--glow-x',x);
       after.style.setProperty('--glow-y',y);
-      pointerRaf=0;
+      lightRaf=0;
     });
   },{passive:true});
   after.addEventListener('pointerleave',()=>{

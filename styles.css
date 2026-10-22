@@ -62,7 +62,8 @@ img{display:block;max-width:100%}
 .love-letter{position:relative;margin:0;font:400 clamp(38px,4.1vw,58px)/1.17 var(--serif);letter-spacing:-.035em;color:#46555c;text-wrap:pretty}
 .love-letter > p{margin:0 0 1.05em;min-width:0}
 .love-letter > p:last-child{margin-bottom:0}
-.love-letter .word{display:inline-block;opacity:.14;transform:translateY(2px);will-change:opacity,transform;color}
+.love-letter .word{display:inline-block;opacity:1;transform:none;color:inherit}
+.love-letter.letter-animated .word{opacity:.12;transform:translateY(2px)}
 .letter-paper__signoff{position:relative;display:flex;justify-content:flex-end;align-items:center;gap:12px;margin-top:34px}
 .letter-paper__signoff p{margin:0;font:italic 400 clamp(24px,2.4vw,34px)/1 var(--serif);color:#7c6b72}
 .letter-paper__signoff span{color:#9a7688;font-size:22px}
@@ -1195,3 +1196,12 @@ main{width:100%;min-width:0}
 .media-pending .only-us-scroll__still[data-ready="true"]{opacity:1}
 .media-pending .only-us-scroll__media.is-frame-ready .only-us-scroll__still{opacity:0}
 .only-us-scroll__media{background:#f6efe7}
+
+
+/* Fail-safe: photos never depend on a JS decode callback to become visible. */
+.memory__frame img,.doodle-interlude__card img,.whimsy__art img{
+  opacity:1!important;
+  visibility:visible!important;
+}
+.only-us-scroll__still[data-ready="true"]{opacity:1}
+.only-us-scroll__media.is-frame-ready .only-us-scroll__still{opacity:0}

@@ -1,23 +1,68 @@
 import {useEffect,useRef,useState} from 'react';
 import achievements from '../achievements.json';
-import {gsap,ScrollTrigger,useMotion} from '../hooks/useMotion';
-import Dropdown from './Dropdown';
+import {gsap,useMotion} from '../hooks/useMotion';
 import Icon from './Icon';
+
+/* Recognition, not points: the 23 badges as seven paths of progress,
+   shown for one example student eight papers into a term. */
+type Badge=typeof achievements[number];
+const earned=new Set([1,2,3,4,7,8,10,11,14,18,20,21]);
+const paths=Array.from(new Set(achievements.map(a=>a.category))).map(name=>({name,badges:achievements.filter(a=>a.category===name),hue:achievements.find(a=>a.category===name)!.hue}));
+const shortName:Record<string,string>={'Review & Reflection':'Review and reflection','Exploration & Coverage':'Exploration','Recovery & Resilience':'Coming back','Paper & Question Milestones':'Papers reviewed'};
+
 export default function Achievements(){
- const ref=useRef<HTMLElement>(null),badge=useRef<HTMLImageElement>(null),[category,setCategory]=useState('all'),[expanded,setExpanded]=useState(false),[selected,setSelected]=useState(achievements[0]);
- const categories=Array.from(new Set(achievements.map(a=>a.category)));
- const filtered=achievements.filter(a=>category==='all'||a.category===category),shown=expanded?filtered:filtered.slice(0,8);
- useMotion(()=>{gsap.from('.achievement-heading,.achievement-feature',{opacity:0,y:20,duration:.7,stagger:.1,clearProps:'opacity,transform',scrollTrigger:{trigger:ref.current,start:'top 80%',once:true}});},ref);
- useEffect(()=>{ScrollTrigger.refresh(true);},[expanded,category]);
- useEffect(()=>{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const tween=gsap.fromTo(badge.current,{scale:.88,rotation:-5,opacity:.5},{scale:1,rotation:0,opacity:1,duration:.7,ease:'back.out(1.3)',clearProps:'transform,opacity'});return()=>{tween.kill();};},[selected]);
- return <section className="achievements-section section-pad" id="achievements" ref={ref} aria-labelledby="achievements-title">
- <div className="achievement-heading"><div><span className="eyebrow">EVERY CONNECTION COUNTS</span><h2 id="achievements-title">Small steps.<br/>Worth noticing.</h2></div><p>Review. Reflect. Try again.<br/>Recognise the habits you build.</p></div>
- <div className="achievement-layout"><div className="achievement-feature" style={{'--badge-hue':selected.hue} as React.CSSProperties}>
- <div className="achievement-glow" aria-hidden="true"/><img ref={badge} src={selected.image} alt={selected.title+' achievement badge'} width="264" height="288" loading="lazy" decoding="async"/>
- <span className="achievement-category">{selected.category} <span>· {selected.tier} / {selected.tiers_in_category}</span></span><h3>{selected.title}</h3><p>{selected.description}</p><div className="achievement-unlock"><Icon name="check"/><span>{selected.unlock}</span></div>
- </div><div className="achievement-catalogue"><div className="achievement-toolbar"><span>{filtered.length} achievements to explore</span><Dropdown label="Achievement category" value={category} onChange={value=>{setCategory(value);setExpanded(false);setSelected(achievements.find(item=>value==='all'||item.category===value)||achievements[0]);}} options={[{value:'all',label:'All achievements'},...categories.map(value=>({value,label:value}))]}/></div>
- <ul className="achievement-list" aria-label="Axon achievements">{shown.map(item=><li key={item.id}><button type="button" aria-pressed={selected.id===item.id} onClick={()=>setSelected(item)}><img src={item.image} alt="" width="80" height="88" loading="lazy" decoding="async"/><span>{item.title}</span><small>{item.category}</small></button></li>)}</ul>
- {filtered.length>8&&<button className="achievement-more" onClick={()=>setExpanded(value=>!value)} aria-expanded={expanded}>{expanded?'Show fewer':'Explore all '+filtered.length+' achievements'}<Icon name={expanded?'up':'down'}/></button>}
- <p className="achievement-note">A preview of Axon’s achievements. Your progress lives in your account.</p>
- </div></div></section>;
+ const ref=useRef<HTMLElement>(null),art=useRef<HTMLDivElement>(null),[selected,setSelected]=useState<Badge>(achievements.find(a=>a.id===11)!);
+ const done=earned.has(selected.id),path=paths.find(p=>p.name===selected.category)!;
+ const next=path.badges.find(b=>!earned.has(b.id));
+
+ /* The featured badge turns toward the pointer, like an object you can pick up. */
+ useEffect(()=>{
+  const el=art.current!,root=ref.current!;if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const rx=gsap.quickTo(el,'rotationX',{duration:.8,ease:'power3.out'}),ry=gsap.quickTo(el,'rotationY',{duration:.8,ease:'power3.out'});
+  const move=(e:PointerEvent)=>{if(e.pointerType!=='mouse')return;const r=el.getBoundingClientRect(),x=(e.clientX-(r.left+r.width/2))/innerWidth,y=(e.clientY-(r.top+r.height/2))/innerHeight;ry(Math.max(-22,Math.min(22,x*60)));rx(Math.max(-18,Math.min(18,-y*50)));};
+  const leave=()=>{rx(0);ry(0);};
+  root.addEventListener('pointermove',move,{passive:true});root.addEventListener('pointerleave',leave);
+  return()=>{root.removeEventListener('pointermove',move);root.removeEventListener('pointerleave',leave);};
+ },[]);
+ useEffect(()=>{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const t=gsap.fromTo(art.current!.querySelector('img'),{scale:.86,rotation:-8,opacity:.4},{scale:1,rotation:0,opacity:1,duration:.75,ease:'back.out(1.4)',clearProps:'transform,opacity'});return()=>{t.kill();};},[selected]);
+ useMotion(()=>{
+  const root=ref.current!;
+  gsap.timeline({scrollTrigger:{trigger:root,start:'top 72%',once:true},defaults:{ease:'power3.out'}})
+   .from('.bg-head > *',{y:20,opacity:0,duration:.8,stagger:.08,clearProps:'transform,opacity'})
+   .from('.bg-feature',{y:40,opacity:0,duration:1,clearProps:'transform,opacity'},.1);
+  root.querySelectorAll<HTMLElement>('.bg-path').forEach((row,i)=>{
+   gsap.timeline({scrollTrigger:{trigger:row,start:'top 92%',once:true}})
+    .from(row.querySelectorAll('.bg-badge'),{scale:.6,opacity:0,duration:.6,stagger:.07,ease:'back.out(1.6)',clearProps:'transform,opacity'},i*.02)
+    .from(row.querySelector('.bg-track-fill'),{scaleX:0,duration:.9,ease:'power2.out',clearProps:'transform'},.15);
+  });
+ },ref);
+
+ return <section className="badges-scene" id="achievements" ref={ref} aria-labelledby="achievements-title">
+  <div className="bg-head">
+   <h2 id="achievements-title">Small steps,<br/>worth noticing.</h2>
+   <p>Axon recognises the habits that win marks back: reviewing, trying again, coming back after a hard paper. No points. No leaderboards.</p>
+  </div>
+
+  <div className="bg-feature" style={{['--hue' as string]:selected.hue}} aria-live="polite">
+   <div className="bg-art" ref={art}><img src={selected.image} alt={selected.title+' badge'} width="264" height="288" data-earned={done}/></div>
+   <div className="bg-copy">
+    <p className="bg-meta">{selected.category} · {selected.tier} of {selected.tiers_in_category}</p>
+    <h3>{selected.title}</h3>
+    <p className="bg-desc">{selected.description}</p>
+    <p className="bg-unlock" data-earned={done}><Icon name={done?'check':'clock'}/><span>{done?'Earned. ':'Still to come. '}{selected.unlock}</span></p>
+    {done&&next&&<button type="button" className="bg-next" onClick={()=>setSelected(next)}>Next on this path: {next.title}<Icon name="arrow"/></button>}
+   </div>
+  </div>
+
+  <div className="bg-paths">
+   {paths.map(p=>{const got=p.badges.filter(b=>earned.has(b.id)).length;return <div className="bg-path" key={p.name} style={{['--hue' as string]:p.hue,['--fill' as string]:`${p.badges.length>1?Math.max(0,(got-1)/(p.badges.length-1))*100:0}%`}}>
+    <div className="bg-path-head"><h3>{shortName[p.name]||p.name}</h3><span>{got} of {p.badges.length}</span></div>
+    <ol className="bg-row" style={{['--n' as string]:p.badges.length}}>
+     <span className="bg-track" aria-hidden="true"><i className="bg-track-fill"/></span>
+     {p.badges.map(b=><li key={b.id}><button type="button" className="bg-badge" data-earned={earned.has(b.id)} aria-pressed={selected.id===b.id} aria-label={`${b.title}, ${earned.has(b.id)?'earned':'still to come'}`} onClick={()=>setSelected(b)}><img src={b.image} alt="" width="80" height="88" loading="lazy" decoding="async"/></button><span className="bg-name">{b.title}</span></li>)}
+    </ol>
+   </div>;})}
+  </div>
+  <p className="bg-foot">Shown for one example student, eight papers into a term. Your own progress lives in your account.</p>
+ </section>;
 }

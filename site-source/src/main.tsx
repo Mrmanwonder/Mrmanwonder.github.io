@@ -16,6 +16,7 @@ import './endings.css';
 import './motion-refinements.css';
 
 import './around-you.css';
+import './badges.css';
 
 import './hero-dark.css';
 import './masthead.css';

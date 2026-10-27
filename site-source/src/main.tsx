@@ -18,3 +18,4 @@ import './motion-refinements.css';
 import './around-you.css';
 
 import './hero-dark.css';
+import './masthead.css';

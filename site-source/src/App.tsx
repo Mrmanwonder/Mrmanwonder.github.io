@@ -1,6 +1,7 @@
 import {useSectionNavigation} from './hooks/useSectionNavigation';
 import {useEffect,useState} from 'react';
-import {Header,Hero,Slogan,Process,Papers} from './components/Content';
+import Masthead from './components/Masthead';
+import {Header,Slogan,Process,Papers} from './components/Content';
 import Analytics from './components/Analytics';
 import Practice from './components/Practice';
 import Achievements from './components/Achievements';
@@ -14,5 +15,5 @@ export default function App(){
   [['.papers-section .section-heading',-22],['.practice-intro',-24]].forEach(([selector,y])=>{const el=document.querySelector(selector as string);if(el)gsap.fromTo(el,{y:16},{y,force3D:true,ease:'none',scrollTrigger:{trigger:el.parentElement,start:'top bottom',end:'bottom top',scrub:.9}});});
  });return()=>mm.revert();},[]);
  const toggle=()=>setDark(v=>!v);
- return <><a className="skip-link" href="#how-it-works">Skip to how Axon works</a><Header/><main><Hero/><Slogan/><Process dark={dark} toggle={toggle}/><Papers dark={dark} toggle={toggle}/><Analytics/><Practice dark={dark} toggle={toggle}/><Achievements/><AroundYou/><FAQ/></main><Footer/></>;
+ return <><a className="skip-link" href="#how-it-works">Skip to how Axon works</a><Header/><main><Masthead/><Slogan/><Process dark={dark} toggle={toggle}/><Papers dark={dark} toggle={toggle}/><Analytics/><Practice dark={dark} toggle={toggle}/><Achievements/><AroundYou/><FAQ/></main><Footer/></>;
 }

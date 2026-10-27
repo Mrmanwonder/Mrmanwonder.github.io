@@ -1,27 +1,33 @@
-# Where the Sea Keeps Us — V22
+# Axon landing page
 
-## New scroll-film section
+Live site: https://mrmanwonder.github.io/
 
-The uploaded `Firefly 787395.mp4` is now integrated into the full birthday site as a dedicated scroll-driven section between **Just Us** and **Memories**.
+The current Axon landing page uses React, TypeScript, Vite and GSAP. The serif hero, pure black background, amber dot wave and porcelain headline match the published Axon prototype.
 
-### How it behaves
-- The section pins to the viewport while the visitor scrolls.
-- Scroll progress maps directly to the video's 192 frames at 24 fps.
-- The source video was converted from 4K HEVC to browser-safe 1080p H.264 with frequent keyframes and `faststart` for smooth seeking.
-- The scene is muted so the existing **Bloom** soundtrack remains the only audio.
-- Once the crowd has mostly disappeared, a restrained cinematic zoom gradually begins.
-- The final scale is about **1.145x**, with a tiny upward optical shift so the ending feels closer without becoming dramatic.
-- The last part of the scroll holds near the end frame, allowing the final image to land before the memories section begins.
-- Reduced-motion users see the final still instead of a scrub animation.
+## Develop and build
 
-### Video assets
-- `assets/video/only-us-scroll.mp4`
-- `assets/video/only-us-start.jpg`
-- `assets/video/only-us-end.jpg`
+Use Node.js 22.12 or newer.
 
-## Bloom soundtrack
-V22 keeps the resilient soundtrack lookup from V21. The easiest placement is still:
+```sh
+cd site-source
+npm ci
+npm run dev
+```
 
-`bloom.mp3` beside `index.html`
+To validate and prepare a new production build:
 
-The commercial song file itself is not included in this package.
+```sh
+npm test
+npm run build
+node scripts/prepare-pages.mjs
+```
+
+Commit the source and updated root `index.html` / `assets/`, then push to `main`. The existing GitHub Pages branch deployment publishes the root directory automatically. `.nojekyll` serves the compiled Vite output directly. No backend, API keys or runtime configuration is required; Explore Axon links to the app at https://axonstudy.online/app.
+
+## Repository layout
+
+- `index.html` and `assets/`: compiled site served by GitHub Pages.
+- `site-source/`: editable React source, local fonts, scanner recording, checks and locked dependencies.
+- `PREVIOUS-SITE.md`: documentation for the previous homepage. Its supporting files remain in place; its previous HTML can be recovered from commit `472dc5392d940de050bd98dacafdda8797f29901`.
+
+Imported from the Axon prototype source commit `7f0f63ba3a7e2dce80d33580e0b124d86caa6b70`.

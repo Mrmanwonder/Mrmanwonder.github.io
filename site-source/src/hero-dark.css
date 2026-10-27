@@ -1,0 +1,47 @@
+@font-face{font-family:'Fraunces';src:url('/assets/fraunces-display.woff2') format('woff2');font-style:normal;font-weight:400;font-display:swap}
+.hero{background:#000;color:#dadce2;min-height:700px;padding:116px 24px 170px}
+.hero .dot-field{opacity:.96;mask-image:radial-gradient(ellipse at 50% 48%,#0005 0%,#000a 26%,#000 62%,transparent 100%);-webkit-mask-image:radial-gradient(ellipse at 50% 48%,#0005 0%,#000a 26%,#000 62%,transparent 100%)}
+.hero .hero-copy{max-width:980px;position:relative;z-index:1}
+.hero h1{font-family:'Fraunces',Georgia,serif;font-size:clamp(44px,12.5vw,120px);font-style:normal;font-weight:400;line-height:1.1;letter-spacing:-.018em;color:var(--hero-text);text-shadow:none}
+.hero .hero-copy>p{font-size:14px;line-height:1.7;color:#979ca8;max-width:470px;margin:24px auto 30px;text-wrap:balance}
+.hero .hero-actions{gap:12px;justify-content:center;align-items:center}
+.hero .primary-button,.hero .hero-secondary{height:48px;border-radius:999px;font-family:Onest,sans-serif;font-size:12px;font-weight:500;letter-spacing:0;transition:background .2s,border-color .2s,color .2s,transform .2s;box-shadow:none}
+.hero .primary-button{background:#171512;color:var(--hero-text);border:1px solid rgba(var(--hero-accent-rgb),.26);padding:0 22px;gap:25px}
+.hero .primary-button svg{color:var(--hero-accent);width:16px;height:16px}
+.hero .primary-button:hover{background:#211c15;border-color:rgba(var(--hero-accent-rgb),.5);color:var(--hero-text);transform:translateY(-1px);box-shadow:none}
+.hero .hero-secondary{display:inline-flex;align-items:center;justify-content:space-between;gap:18px;padding:0 22px;color:#a2a7b1;background:#000;border:1px solid #ffffff1c;backdrop-filter:none;-webkit-backdrop-filter:none}
+.hero .hero-secondary svg{width:15px;height:15px;padding:0;border:0;border-radius:0;color:#7e8797;background:none}
+.hero .hero-secondary:hover{background:#0d0f13;border-color:#ffffff36;color:#c5cbd6;transform:translateY(-1px)}
+.hero .primary-button:active,.hero .hero-secondary:active{transform:scale(.985)}
+.hero .hero-sequence{bottom:38px;max-width:800px;margin-inline:auto;padding-top:20px;border-top:1px solid #ffffff0e;gap:clamp(28px,5vw,76px)}
+.hero .hero-sequence strong{color:#b9bdc6;font-weight:500}
+.hero .hero-sequence p{color:#858a96}
+.hero .hero-sequence>div>svg{color:#838d9f}
+/* The floating header uses the same quiet surfaces over dark scenes. */
+.header .primary-button{border:1px solid transparent;transition:background .2s,color .2s,border-color .2s}
+.header nav,.header nav a{transition:background .2s,color .2s,border-color .2s}
+.header:has(.brand[data-tone=light]) .brand{opacity:.9}
+.header:has(.brand[data-tone=light]) nav,.header:has(.brand[data-tone=light]) nav.open{background:rgba(17,18,21,.92);border-color:#ffffff1b;box-shadow:0 5px 22px -16px #0009}
+.header:has(.brand[data-tone=light]) nav a{color:#aeb3bd}
+.header:has(.brand[data-tone=light]) nav a:hover{color:#e0e3e9}
+.header:has(.brand[data-tone=light]) nav a+a{border-color:#ffffff0e}
+.header:has(.brand[data-tone=light]) .primary-button{background:rgba(23,21,18,.96);color:var(--hero-text);border-color:rgba(var(--hero-accent-rgb),.22);box-shadow:none}
+.header:has(.brand[data-tone=light]) .primary-button svg{color:var(--hero-accent)}
+.header:has(.brand[data-tone=light]) .primary-button:hover{background:#211c15;border-color:rgba(var(--hero-accent-rgb),.45)}
+.header:has(.brand[data-tone=light]) .menu-button{background:rgba(17,18,21,.94);color:#bfc5cf;border:1px solid #ffffff1b}
+@media(max-width:800px){
+ .hero{min-height:660px;padding:110px 22px 172px}
+ .hero .hero-copy>p{font-size:13px;max-width:300px;margin:23px auto 26px}
+ .hero .hero-sequence{left:24px;right:24px;bottom:30px;gap:18px;padding-top:18px}
+}
+@media(max-width:600px){
+ .hero .hero-actions{gap:10px}
+ .hero .primary-button,.hero .hero-secondary{height:46px;font-size:12px;padding-inline:20px;gap:18px}
+ .hero .hero-copy>p{max-width:290px}
+ .hero .hero-sequence{gap:12px;text-align:center}
+ .hero .hero-sequence strong{font-size:11.5px}.hero .hero-sequence p{font-size:10px;line-height:1.5}
+}
+@media(max-width:359px){.hero .primary-button,.hero .hero-secondary{font-size:11.5px;padding-inline:16px;gap:14px}.hero .hero-sequence{left:20px;right:20px}}
+@media(max-height:700px) and (min-width:801px){.hero{min-height:600px;padding:100px 24px 140px}.hero h1{font-size:clamp(72px,8vw,100px)}.hero .hero-sequence{bottom:28px}}
+@media(prefers-reduced-motion:reduce){.hero .primary-button:hover,.hero .hero-secondary:hover{transform:none}}
+@media(prefers-reduced-transparency:reduce){.header:has(.brand[data-tone=light]) nav,.header:has(.brand[data-tone=light]) nav.open,.header:has(.brand[data-tone=light]) .menu-button{background:#111215}.header:has(.brand[data-tone=light]) .primary-button{background:#171512}}

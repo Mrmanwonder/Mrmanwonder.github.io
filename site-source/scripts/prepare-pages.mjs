@@ -1,0 +1,11 @@
+import {access,cp,mkdir,writeFile} from 'node:fs/promises';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+const source=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const root=path.resolve(source,'..');
+await access(path.join(source,'dist','index.html'));
+await mkdir(path.join(root,'assets'),{recursive:true});
+await cp(path.join(source,'dist','assets'),path.join(root,'assets'),{recursive:true});
+await cp(path.join(source,'dist','index.html'),path.join(root,'index.html'));
+await writeFile(path.join(root,'.nojekyll'),'');
+console.log('Prepared Axon for GitHub Pages in '+root);

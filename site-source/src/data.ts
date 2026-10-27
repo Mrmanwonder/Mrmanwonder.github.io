@@ -1,0 +1,10 @@
+export const paperMarks=[16,17,18,20,19,22,23,24];
+export const topics=['Forces','Energy','Waves','Circuits','Optics','Thermal'];
+const loss=[[0,0,0,3,4,7],[0,0,0,2,4,7],[0,0,0,3,3,6],[0,0,0,2,3,5],[0,0,0,2,4,5],[0,0,0,2,2,4],[0,0,0,1,2,4],[0,0,0,1,2,3]];
+const sequence=[0,1,2,3,4,5,0,1,3,4,5,0,1,3,4,0,1,3,4,5,0,2,3,0],causeIds=[0,1,3,2,0,6,1,0,3,4,0,5,1,2,6,0,3,1,4,0,5,1,2,3];
+export const causeNames=['Concept gap','Slip in the working','Misread the question','Left incomplete','How it was presented','Missing keyword','Ran out of time'];
+let index=0;
+export const questions=loss.flatMap((row,p)=>row.map((lost,q)=>({paper:p,available:[2,3,4,5,6,10][q],lost,topic:lost?sequence[index]:q,cause:lost?causeIds[index++]:null})));
+export const heatmap=topics.map((_,t)=>paperMarks.map((_,p)=>questions.filter(q=>q.topic===t&&q.paper===p&&q.lost).length));
+export const causes=causeNames.map((name,i)=>({name,lost:questions.filter(q=>q.cause===i).reduce((sum,q)=>sum+q.lost,0)})).sort((a,b)=>b.lost-a.lost);
+export const topTopics=topics.map((name,i)=>({name,count:heatmap[i].reduce((a,b)=>a+b,0)})).sort((a,b)=>b.count-a.count).slice(0,4);

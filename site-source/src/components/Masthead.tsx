@@ -7,25 +7,41 @@ import {appURL} from './Content';
 gsap.registerPlugin(SplitText);
 
 /* Four marked papers. Blue is the student's pen, red is only ever the teacher's ink. */
-type Paper={id:string;subject:string;paper:string;score:string;question:string;lines:string[];ink:string;inkAt:number;
- lost:string;title:string;body:string;next:string};
+type Line={text:string;ok?:boolean;ink?:string};
+type Paper={id:string;subject:string;paper:string;score:string;q:string;marks:number;margin:number;question:string;lines:Line[];
+ ink:string;lost:string;title:string;body:string;next:string};
 const papers:Paper[]=[
- {id:'maths',subject:'Maths',paper:'Paper 2 · Algebra',score:'27/40',question:'Solve (2x − 3)/(x + 1) = x − 2.',lines:['2x − 3 = x² − x − 2','0 = x² − 3x − 5'],ink:'sign?',inkAt:1,
+ {id:'maths',subject:'Mathematics',paper:'Paper 2 · Algebra',score:'27',q:'6',marks:5,margin:2,question:'Solve the equation, giving both solutions exactly.',
+  lines:[{text:'2x − 3 = x² − x − 2',ok:true},{text:'0 = x² − 3x − 5',ink:'sign?'}],ink:'sign?',
   lost:'Question 6 · 3 of 5 marks lost',title:'Keep the sign. Then solve.',body:'−2 + 3 is +1, not −5. The equation is x² − 3x + 1 = 0, so x = (3 ± √5) / 2. Your method was right from there.',next:'Two sign-check questions are waiting for you.'},
- {id:'physics',subject:'Physics',paper:'Paper 4 · Forces',score:'31/40',question:'A 2.0 kg trolley accelerates at 3.0 m/s². Find the resultant force.',lines:['F = m × a = 2.0 × 3.0','F = 6'],ink:'unit?',inkAt:1,
+ {id:'physics',subject:'Physics',paper:'Paper 4 · Forces',score:'31',q:'3(b)',marks:3,margin:2,question:'A 2.0 kg trolley accelerates at 3.0 m/s². Calculate the resultant force.',
+  lines:[{text:'F = m × a',ok:true},{text:'= 2.0 × 3.0',ok:true},{text:'F = 6',ink:'unit?'}],ink:'unit?',
   lost:'Question 3(b) · 1 of 3 marks lost',title:'Right method. One missing unit.',body:'Your working is correct. Your teacher is asking what the 6 measures: force is in newtons, so the answer is 6 N.',next:'Write the number and its unit together, every time.'},
- {id:'biology',subject:'Biology',paper:'Paper 4 · Transport',score:'22/30',question:'Explain why low oxygen reduces mineral uptake by root hair cells.',lines:['Without oxygen the roots','cannot take in minerals.'],ink:'why?',inkAt:1,
+ {id:'biology',subject:'Biology',paper:'Paper 4 · Transport',score:'22',q:'2',marks:3,margin:1,question:'Explain why low oxygen reduces mineral uptake by root hair cells.',
+  lines:[{text:'Less oxygen, so the roots',ok:true},{text:'cannot take in minerals.',ink:'why?'}],ink:'why?',
   lost:'Question 2 · 2 of 3 marks lost',title:'Follow the energy.',body:'Less oxygen means less aerobic respiration, so less ATP. Active transport needs ATP to move ions against their gradient.',next:'Say the mechanism, not just the result.'},
- {id:'chemistry',subject:'Chemistry',paper:'Paper 2 · Reactions',score:'35/40',question:'Write the balanced equation for hydrogen burning in oxygen.',lines:['2H₂ + O₂ → H₂O'],ink:'balance',inkAt:0,
+ {id:'chemistry',subject:'Chemistry',paper:'Paper 2 · Reactions',score:'35',q:'5',marks:2,margin:1,question:'Write a balanced equation for hydrogen burning in oxygen.',
+  lines:[{text:'2H₂ + O₂ → H₂O',ink:'balance'}],ink:'balance',
   lost:'Question 5 · 1 of 2 marks lost',title:'Count the atoms on both sides.',body:'Four hydrogen atoms go in, so four must come out: 2H₂ + O₂ → 2H₂O. The products were right; the numbers were not.',next:'Check each element once before moving on.'},
 ];
 
+const Tick=()=><svg className="ps-tick" viewBox="0 0 26 20" aria-hidden="true"><path d="M2 11c3 2 5 5 7 7 4-7 9-12 15-16"/></svg>;
+const Arrow=()=><svg className="ps-arrow" viewBox="0 0 40 22" aria-hidden="true"><path d="M38 4C28 2 14 4 6 15M6 15l1-7M6 15l7-1"/></svg>;
 function Sheet({p,i,active,onPick}:{p:Paper;i:number;active:boolean;onPick:(id:string)=>void}){
- return <button type="button" className="fan-sheet" data-i={i} data-active={active} aria-pressed={active} aria-label={`${p.subject} paper, ${p.score}. Show what Axon says`} onClick={()=>onPick(p.id)}>
-  <span className="fs-head"><span><b>{p.subject}</b><small>{p.paper}</small></span><span className="fs-score">{p.score}<svg viewBox="0 0 120 60" aria-hidden="true"><path d="M70 6C34 3 6 15 7 32c1 18 33 25 60 23 30-2 48-13 46-28C111 12 90 4 62 6"/></svg></span></span>
-  <span className="fs-q">{p.question}</span>
-  {p.lines.map((l,n)=><span className="fs-line" key={n}>{l}{n===p.inkAt&&<em className="fs-ink">{p.ink}</em>}</span>)}
-  <span className="fs-rule"/><span className="fs-rule short"/>
+ return <button type="button" className="fan-sheet" data-i={i} data-active={active} aria-pressed={active} aria-label={`${p.subject}, ${p.score} out of 40. Show what Axon says about “${p.ink}”`} onClick={()=>onPick(p.id)}>
+  <span className="ps-head">
+   <span className="ps-title"><b>{p.subject}</b><small>{p.paper}</small></span>
+   <span className="ps-total"><span className="ps-total-ink">{p.score}</span><small>/40</small><svg viewBox="0 0 120 70" aria-hidden="true"><path d="M74 7C38 2 8 16 8 37c0 21 36 29 63 27 30-2 46-15 44-31C113 15 94 6 64 8"/></svg></span>
+  </span>
+  <span className="ps-body">
+   <span className="ps-q"><b>{p.q}</b><span>{p.question}</span><i>[{p.marks}]</i></span>
+   <span className="ps-answer">
+    {p.lines.map((l,n)=><span className="ps-line" key={n}><span className="ps-pen">{l.text}</span>{l.ok&&<Tick/>}{l.ink&&<span className="ps-note"><Arrow/><em>{l.ink}</em></span>}</span>)}
+    <span className="ps-line"/><span className="ps-line"/><span className="ps-line"/>
+   </span>
+   <span className="ps-margin" aria-hidden="true">{p.margin}</span>
+  </span>
+  <span className="ps-foot"><span>{i+3}</span><span>Turn over</span></span>
  </button>;
 }
 

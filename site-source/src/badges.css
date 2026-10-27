@@ -1,0 +1,68 @@
+/* Small steps, worth noticing: one featured badge, and seven paths of progress. */
+.badges-scene{
+ --b-ground:#f3f2ef;--b-ink:#13151a;--b-muted:#646873;--b-accent:#2a5bea;--b-surface:#eae8e2;
+ position:relative;isolation:isolate;background:var(--b-ground);color:var(--b-ink);font-family:Onest,system-ui,sans-serif;
+ display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);grid-template-areas:'head paths' 'feature paths' 'foot foot';grid-template-rows:auto 1fr auto;
+ column-gap:clamp(40px,6vw,110px);padding:150px clamp(20px,6vw,100px) 72px}
+@media (prefers-color-scheme:dark){.badges-scene{--b-ground:#0b0c0f;--b-ink:#eeeeeb;--b-muted:#a1a4ac;--b-accent:#8aa6ff;--b-surface:#17181d}}
+.badges-scene *{box-sizing:border-box}
+.bg-head{grid-area:head}
+.bg-head h2{margin:0;font-size:clamp(44px,5vw,80px);font-weight:640;letter-spacing:-.052em;line-height:.98;color:var(--b-ink)}
+.bg-head p{margin:22px 0 0;max-width:34ch;font-size:clamp(17px,1.35vw,20px);line-height:1.5;color:var(--b-muted);letter-spacing:-.01em}
+
+/* The featured badge */
+.bg-feature{grid-area:feature;align-self:start;position:sticky;top:110px;margin-top:44px;display:flex;flex-direction:column;align-items:flex-start}
+.bg-art{position:relative;width:min(300px,100%);aspect-ratio:264/288;perspective:900px;transform-style:preserve-3d;will-change:transform}
+.bg-art::before{content:'';position:absolute;inset:6% 10%;border-radius:50%;z-index:-1;background:hsl(var(--hue) 70% 62% / .28);filter:blur(42px);transition:background .5s}
+.bg-art::after{content:'';position:absolute;left:18%;right:18%;bottom:-6%;height:10%;border-radius:50%;background:#1d223033;filter:blur(12px);z-index:-1}
+.bg-art img{width:100%;height:100%;display:block}
+.bg-art img[data-earned=false]{filter:grayscale(1) contrast(.9);opacity:.6}
+.bg-copy{margin-top:28px;max-width:420px}
+.bg-meta{margin:0;font-size:14px;color:var(--b-muted)}
+.bg-copy h3{margin:6px 0 0;font-size:clamp(28px,2.4vw,36px);font-weight:640;letter-spacing:-.04em;line-height:1.1}
+.bg-desc{margin:12px 0 0;font-size:17px;line-height:1.5;color:var(--b-ink)}
+.bg-unlock{display:flex;gap:10px;align-items:flex-start;margin:18px 0 0;padding:14px 16px;border-radius:16px;background:var(--b-surface);font-size:15px;line-height:1.45;color:var(--b-ink)}
+.bg-unlock svg{flex:none;width:18px;height:18px;margin-top:1px;color:var(--b-muted)}
+.bg-unlock[data-earned=true] svg{color:hsl(var(--hue) 55% 40%)}
+.bg-next{display:inline-flex;align-items:center;gap:8px;margin-top:16px;padding:6px 0;font-size:15px;font-weight:560;color:var(--b-accent)}
+.bg-next svg{width:14px;height:14px;transition:transform .3s}.bg-next:hover svg{transform:translate(2px,-2px)}
+
+/* Seven paths */
+.bg-paths{grid-area:paths;display:flex;flex-direction:column;gap:14px;align-self:start}
+.bg-path{padding:18px 24px 14px;border-radius:24px;background:var(--b-surface)}
+.bg-path-head{display:flex;justify-content:space-between;align-items:baseline}
+.bg-path-head h3{margin:0;font-size:18px;font-weight:620;letter-spacing:-.02em}
+.bg-path-head span{font-size:14px;color:var(--b-muted)}
+.bg-row{position:relative;list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.bg-track{position:absolute;left:calc(100% / 8);right:calc(100% / 8 + (4 - var(--n)) * 100% / 4);top:35px;height:3px;border-radius:2px;background:color-mix(in srgb,var(--b-muted) 22%,transparent)}
+.bg-track-fill{position:absolute;inset:0 auto 0 0;width:var(--fill);border-radius:2px;background:hsl(var(--hue) 55% 48%);transform-origin:left}
+.bg-row li{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+.bg-badge{position:relative;display:grid;place-items:center;width:66px;height:72px;border-radius:18px;transition:transform .35s cubic-bezier(.22,1,.36,1)}
+.bg-badge img{width:100%;height:100%;display:block;transition:filter .3s,opacity .3s}
+.bg-badge[data-earned=false] img{filter:grayscale(1) contrast(.9);opacity:.45}
+.bg-badge:hover{transform:translateY(-4px) scale(1.06)}
+.bg-badge[aria-pressed=true]{transform:scale(1.1)}
+.bg-badge[aria-pressed=true]+.bg-name{color:var(--b-ink);font-weight:650}
+.bg-badge:focus-visible{outline:2px solid var(--b-accent);outline-offset:4px}
+.bg-name{margin-top:6px;font-size:13px;line-height:1.3;color:var(--b-muted)}
+.bg-badge[data-earned=true]+.bg-name{color:var(--b-ink)}
+.bg-foot{grid-area:foot;margin:40px 0 0;font-size:14px;color:var(--b-muted)}
+
+@media(max-width:1000px){
+ .badges-scene{grid-template-columns:minmax(0,1fr);grid-template-areas:'head' 'feature' 'paths' 'foot';padding:110px 32px 56px}
+ .bg-feature{position:relative;top:auto;margin:36px 0 40px;display:grid;grid-template-columns:200px minmax(0,1fr);column-gap:28px;align-items:center}
+ .bg-copy{margin-top:0}
+}
+@media(max-width:600px){
+ .badges-scene{padding:96px 20px 48px}
+ .bg-head h2{font-size:clamp(38px,11vw,52px)}
+ .bg-feature{display:flex;flex-direction:column;align-items:flex-start;margin:28px 0 32px}
+ .bg-art{width:170px}
+ .bg-copy{margin-top:20px}
+ .bg-next{text-align:left}
+ .bg-copy h3{font-size:24px}.bg-desc{font-size:15.5px}.bg-unlock{font-size:14px;padding:12px 14px}
+ .bg-path{padding:16px 14px 12px;border-radius:20px}
+ .bg-row{gap:4px}.bg-badge{width:58px;height:64px}.bg-track{top:31px}
+ .bg-name{font-size:11.5px}
+}
+@media(prefers-reduced-motion:reduce){.bg-badge,.bg-badge img,.bg-next svg{transition:none}}
